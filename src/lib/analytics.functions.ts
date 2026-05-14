@@ -15,25 +15,49 @@ export const getAdminOverview = createServerFn({ method: "GET" })
     const weekAgo = new Date(Date.now() - 7 * 86400_000).toISOString();
 
     const [
-      { count: totalProperties },
-      { count: uploadsToday },
-      { count: missingToday },
+      { data: properties },
+      { data: requiredAreas },
+      { data: uploadsToday },
       { count: openIssues },
       { count: commentsThisWeek },
     ] = await Promise.all([
-      context.supabase.from("properties").select("*", { count: "exact", head: true }).eq("active", true),
-      context.supabase.from("cleaning_uploads").select("*", { count: "exact", head: true })
-        .eq("service_date", today).eq("status", "uploaded"),
-      context.supabase.from("cleaning_uploads").select("*", { count: "exact", head: true })
-        .eq("service_date", today).eq("status", "missing"),
+      context.supabase.from("properties").select("id").eq("active", true),
+      context.supabase.from("property_areas").select("id,property_id")
+        .eq("active", true).eq("required_upload", true),
+      context.supabase.from("cleaning_uploads").select("property_id,area_id,status")
+        .eq("service_date", today),
       context.supabase.from("issues").select("*", { count: "exact", head: true }).eq("status", "open"),
-      context.supabase.from("messages").select("*", { count: "exact", head: true }).gte("created_at", weekAgo),
+      // One comment per thread => count issues created this week
+      context.supabase.from("issues").select("*", { count: "exact", head: true }).gte("created_at", weekAgo),
     ]);
 
+    const propIds = (properties ?? []).map((p: any) => p.id);
+    const requiredByProp = new Map<string, Set<string>>();
+    for (const a of requiredAreas ?? []) {
+      if (!requiredByProp.has(a.property_id)) requiredByProp.set(a.property_id, new Set());
+      requiredByProp.get(a.property_id)!.add(a.id);
+    }
+    const uploadedByProp = new Map<string, Set<string>>();
+    for (const u of uploadsToday ?? []) {
+      if (u.status !== "uploaded") continue;
+      if (!uploadedByProp.has(u.property_id)) uploadedByProp.set(u.property_id, new Set());
+      uploadedByProp.get(u.property_id)!.add(u.area_id);
+    }
+
+    let completed = 0;
+    for (const pid of propIds) {
+      const required = requiredByProp.get(pid);
+      if (!required || required.size === 0) continue;
+      const uploaded = uploadedByProp.get(pid) ?? new Set();
+      let allDone = true;
+      for (const aid of required) if (!uploaded.has(aid)) { allDone = false; break; }
+      if (allDone) completed++;
+    }
+    const missing = Math.max(0, propIds.length - completed);
+
     return {
-      totalProperties: totalProperties ?? 0,
-      uploadsToday: uploadsToday ?? 0,
-      missingToday: missingToday ?? 0,
+      propertiesCompletedToday: completed,
+      propertiesMissingToday: missing,
       openIssues: openIssues ?? 0,
       commentsThisWeek: commentsThisWeek ?? 0,
     };
