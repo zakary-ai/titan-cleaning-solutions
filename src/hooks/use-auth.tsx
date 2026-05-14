@@ -21,35 +21,72 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<AppRole | null>(null);
   const [profile, setProfile] = useState<AuthCtx["profile"]>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionResolved, setSessionResolved] = useState(false);
 
   const loadRoleAndProfile = async (uid: string) => {
-    const [{ data: roleRow }, { data: profileRow }] = await Promise.all([
+    const [{ data: roleRow, error: roleError }, { data: profileRow, error: profileError }] = await Promise.all([
       supabase.from("user_roles").select("role").eq("user_id", uid).maybeSingle(),
       supabase.from("profiles").select("full_name,email,organization_name").eq("id", uid).maybeSingle(),
     ]);
+    if (roleError) throw roleError;
+    if (profileError) throw profileError;
     setRole((roleRow?.role as AppRole) ?? null);
     setProfile(profileRow ?? null);
   };
 
   useEffect(() => {
+    let active = true;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
-      if (s?.user) {
-        setTimeout(() => { loadRoleAndProfile(s.user.id); }, 0);
-      } else {
-        setRole(null);
-        setProfile(null);
+      if (active) {
+        setSession(s);
+        setSessionResolved(true);
       }
     });
 
-    supabase.auth.getSession().then(async ({ data }) => {
-      setSession(data.session);
-      if (data.session?.user) await loadRoleAndProfile(data.session.user.id);
-      setLoading(false);
+    supabase.auth.getSession().then(({ data }) => {
+      if (active) {
+        setSession(data.session);
+        setSessionResolved(true);
+      }
+    }).catch((error) => {
+      console.error(error);
+      if (active) {
+        setSessionResolved(true);
+        setLoading(false);
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => { active = false; subscription.unsubscribe(); };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!sessionResolved) return () => { active = false; };
+
+    if (!session?.user) {
+      setRole(null);
+      setProfile(null);
+      setLoading(false);
+      return () => { active = false; };
+    }
+
+    setLoading(true);
+    loadRoleAndProfile(session.user.id)
+      .catch((error) => {
+        console.error(error);
+        if (active) {
+          setRole(null);
+          setProfile(null);
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => { active = false; };
+  }, [sessionResolved, session?.user?.id]);
 
   const value: AuthCtx = {
     session,
