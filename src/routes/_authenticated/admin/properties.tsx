@@ -65,10 +65,6 @@ function PropertiesPage() {
                 <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
               </div>
               <div>
-                <Label>Client organization</Label>
-                <Input value={form.client_organization} onChange={(e) => setForm({ ...form, client_organization: e.target.value })} />
-              </div>
-              <div>
                 <Label>Service areas</Label>
                 <Textarea
                   rows={6}
