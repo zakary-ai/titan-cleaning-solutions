@@ -49,10 +49,16 @@ function PropertiesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-3xl">Properties</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="font-display text-2xl md:text-3xl">Properties</h1>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button><Plus className="mr-2 h-4 w-4" /> New property</Button></DialogTrigger>
+          <DialogTrigger asChild>
+            <Button size="sm" className="md:size-default">
+              <Plus className="h-4 w-4 md:mr-2" />
+              <span className="hidden sm:inline">New property</span>
+              <span className="sm:hidden ml-1">New</span>
+            </Button>
+          </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Create property</DialogTitle></DialogHeader>
             <form onSubmit={(e) => { e.preventDefault(); m.mutate(); }} className="space-y-3">
