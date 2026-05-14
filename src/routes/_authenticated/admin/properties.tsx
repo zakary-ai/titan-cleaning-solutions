@@ -22,7 +22,7 @@ function PropertiesPage() {
   const qc = useQueryClient();
   const { data: properties = [] } = useQuery({ queryKey: ["properties"], queryFn: () => list() });
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", address: "", client_organization: "", areas: "" });
+  const [form, setForm] = useState({ name: "", address: "", areas: "" });
 
   const m = useMutation({
     mutationFn: () => {
@@ -34,7 +34,6 @@ function PropertiesPage() {
         data: {
           name: form.name,
           address: form.address || null,
-          client_organization: form.client_organization || null,
           areas,
         },
       });
@@ -42,7 +41,7 @@ function PropertiesPage() {
     onSuccess: () => {
       toast.success("Property created");
       setOpen(false);
-      setForm({ name: "", address: "", client_organization: "", areas: "" });
+      setForm({ name: "", address: "", areas: "" });
       qc.invalidateQueries({ queryKey: ["properties"] });
     },
     onError: (e: any) => toast.error(e.message),
@@ -64,10 +63,6 @@ function PropertiesPage() {
               <div>
                 <Label>Property address</Label>
                 <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-              </div>
-              <div>
-                <Label>Client organization</Label>
-                <Input value={form.client_organization} onChange={(e) => setForm({ ...form, client_organization: e.target.value })} />
               </div>
               <div>
                 <Label>Service areas</Label>
