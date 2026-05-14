@@ -34,7 +34,6 @@ function PropertiesPage() {
         data: {
           name: form.name,
           address: form.address || null,
-          client_organization: form.client_organization || null,
           areas,
         },
       });
