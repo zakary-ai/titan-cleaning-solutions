@@ -23,6 +23,7 @@ import { Route as AuthenticatedClientIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedSupervisorIssuesRouteImport } from './routes/_authenticated/supervisor/issues'
 import { Route as AuthenticatedClientIssuesRouteImport } from './routes/_authenticated/client/issues'
+import { Route as AuthenticatedClientHistoryRouteImport } from './routes/_authenticated/client/history'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminPropertiesRouteImport } from './routes/_authenticated/admin/properties'
 import { Route as AuthenticatedAdminIssuesRouteImport } from './routes/_authenticated/admin/issues'
@@ -104,6 +105,12 @@ const AuthenticatedClientIssuesRoute =
     path: '/issues',
     getParentRoute: () => AuthenticatedClientRoute,
   } as any)
+const AuthenticatedClientHistoryRoute =
+  AuthenticatedClientHistoryRouteImport.update({
+    id: '/history',
+    path: '/history',
+    getParentRoute: () => AuthenticatedClientRoute,
+  } as any)
 const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -159,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/admin/issues': typeof AuthenticatedAdminIssuesRoute
   '/admin/properties': typeof AuthenticatedAdminPropertiesRouteWithChildren
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/client/history': typeof AuthenticatedClientHistoryRoute
   '/client/issues': typeof AuthenticatedClientIssuesRoute
   '/supervisor/issues': typeof AuthenticatedSupervisorIssuesRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -178,6 +186,7 @@ export interface FileRoutesByTo {
   '/admin/issues': typeof AuthenticatedAdminIssuesRoute
   '/admin/properties': typeof AuthenticatedAdminPropertiesRouteWithChildren
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/client/history': typeof AuthenticatedClientHistoryRoute
   '/client/issues': typeof AuthenticatedClientIssuesRoute
   '/supervisor/issues': typeof AuthenticatedSupervisorIssuesRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -202,6 +211,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/issues': typeof AuthenticatedAdminIssuesRoute
   '/_authenticated/admin/properties': typeof AuthenticatedAdminPropertiesRouteWithChildren
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/_authenticated/client/history': typeof AuthenticatedClientHistoryRoute
   '/_authenticated/client/issues': typeof AuthenticatedClientIssuesRoute
   '/_authenticated/supervisor/issues': typeof AuthenticatedSupervisorIssuesRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -226,6 +236,7 @@ export interface FileRouteTypes {
     | '/admin/issues'
     | '/admin/properties'
     | '/admin/users'
+    | '/client/history'
     | '/client/issues'
     | '/supervisor/issues'
     | '/admin/'
@@ -245,6 +256,7 @@ export interface FileRouteTypes {
     | '/admin/issues'
     | '/admin/properties'
     | '/admin/users'
+    | '/client/history'
     | '/client/issues'
     | '/supervisor/issues'
     | '/admin'
@@ -268,6 +280,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/issues'
     | '/_authenticated/admin/properties'
     | '/_authenticated/admin/users'
+    | '/_authenticated/client/history'
     | '/_authenticated/client/issues'
     | '/_authenticated/supervisor/issues'
     | '/_authenticated/admin/'
@@ -387,6 +400,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientIssuesRouteImport
       parentRoute: typeof AuthenticatedClientRoute
     }
+    '/_authenticated/client/history': {
+      id: '/_authenticated/client/history'
+      path: '/history'
+      fullPath: '/client/history'
+      preLoaderRoute: typeof AuthenticatedClientHistoryRouteImport
+      parentRoute: typeof AuthenticatedClientRoute
+    }
     '/_authenticated/admin/users': {
       id: '/_authenticated/admin/users'
       path: '/users'
@@ -474,12 +494,14 @@ const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
 interface AuthenticatedClientRouteChildren {
+  AuthenticatedClientHistoryRoute: typeof AuthenticatedClientHistoryRoute
   AuthenticatedClientIssuesRoute: typeof AuthenticatedClientIssuesRoute
   AuthenticatedClientIndexRoute: typeof AuthenticatedClientIndexRoute
   AuthenticatedClientPropertyIdRoute: typeof AuthenticatedClientPropertyIdRoute
 }
 
 const AuthenticatedClientRouteChildren: AuthenticatedClientRouteChildren = {
+  AuthenticatedClientHistoryRoute: AuthenticatedClientHistoryRoute,
   AuthenticatedClientIssuesRoute: AuthenticatedClientIssuesRoute,
   AuthenticatedClientIndexRoute: AuthenticatedClientIndexRoute,
   AuthenticatedClientPropertyIdRoute: AuthenticatedClientPropertyIdRoute,
