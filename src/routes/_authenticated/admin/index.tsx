@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getAdminOverview } from "@/lib/analytics.functions";
-import { Building2, CheckCircle2, AlertTriangle, MessageSquare, MessagesSquare } from "lucide-react";
+import { CheckCircle2, AlertTriangle, MessageSquare, MessagesSquare } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminOverview,
