@@ -43,17 +43,11 @@ function AcceptInvitePage() {
       setSubmitting(false);
       return toast.error(error.message);
     }
+    await supabase.auth.signOut();
     await refresh();
-    const { data: { user } } = await supabase.auth.getUser();
-    let role: "admin" | "supervisor" | "client" | null = null;
-    if (user) {
-      const { data: roleRow } = await supabase
-        .from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
-      role = (roleRow?.role as any) ?? null;
-    }
     setSubmitting(false);
-    toast.success("Welcome! Your account is ready.");
-    navigate({ to: homeForRole(role) });
+    toast.success("Password set. Please sign in.");
+    navigate({ to: "/login" });
   };
 
   return (
