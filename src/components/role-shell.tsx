@@ -4,17 +4,47 @@ import { LogOut, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
+import { getUnreadIssueCount } from "@/lib/issues.functions";
 
-export type NavItem = { to: string; label: string; icon: React.ComponentType<{ className?: string }> };
+export type NavItem = {
+  to: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  /** Show unread-messages badge on this item */
+  showUnread?: boolean;
+};
 
 export function RoleShell({ items, brandSubtitle, children }: { items: NavItem[]; brandSubtitle: string; children: ReactNode }) {
   const { signOut, profile } = useAuth();
   const path = useRouterState({ select: (s) => s.location.pathname });
-  // Index/overview routes (e.g. "/admin", "/client") must match exactly,
-  // otherwise they stay highlighted on every nested route.
   const indexRoutes = new Set(items.filter((it) => !it.to.slice(1).includes("/") || items.some((other) => other !== it && other.to.startsWith(it.to + "/"))).map((it) => it.to));
   const isActive = (to: string) =>
     indexRoutes.has(to) ? path === to : path === to || path.startsWith(to + "/");
+
+  const unreadFn = useServerFn(getUnreadIssueCount);
+  const { data: unread } = useQuery({
+    queryKey: ["unread-issues"],
+    queryFn: () => unreadFn(),
+    refetchInterval: 30_000,
+    staleTime: 15_000,
+  });
+  const unreadCount = unread?.count ?? 0;
+
+  const renderBadge = (variant: "sidebar" | "tab") => {
+    if (unreadCount <= 0) return null;
+    const label = unreadCount > 99 ? "99+" : String(unreadCount);
+    return variant === "sidebar" ? (
+      <span className="ml-auto inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-semibold text-destructive-foreground">
+        {label}
+      </span>
+    ) : (
+      <span className="absolute -top-1 right-1/2 translate-x-[14px] inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-semibold leading-none text-destructive-foreground">
+        {label}
+      </span>
+    );
+  };
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
@@ -39,7 +69,8 @@ export function RoleShell({ items, brandSubtitle, children }: { items: NavItem[]
                   : "text-muted-foreground hover:bg-secondary hover:text-foreground"
               )}>
               <it.icon className="h-4 w-4" />
-              {it.label}
+              <span>{it.label}</span>
+              {it.showUnread && renderBadge("sidebar")}
             </Link>
           ))}
         </nav>
@@ -77,10 +108,13 @@ export function RoleShell({ items, brandSubtitle, children }: { items: NavItem[]
           {items.map((it) => (
             <Link key={it.to} to={it.to}
               className={cn(
-                "flex flex-col items-center gap-1 py-2.5 text-[10px] leading-tight text-center px-1",
+                "relative flex flex-col items-center gap-1 py-2.5 text-[10px] leading-tight text-center px-1",
                 isActive(it.to) ? "text-gold" : "text-muted-foreground"
               )}>
-              <it.icon className="h-5 w-5" />
+              <div className="relative">
+                <it.icon className="h-5 w-5" />
+                {it.showUnread && renderBadge("tab")}
+              </div>
               <span className="truncate max-w-full">{it.label}</span>
             </Link>
           ))}
