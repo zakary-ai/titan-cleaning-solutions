@@ -42,13 +42,6 @@ function AdminPropertyView() {
 
       <ClientPropertyHeader property_id={id} />
 
-      <section>
-        <h2 className="font-display text-xl">Most recent report</h2>
-        <div className="mt-3">
-          <ClientReport property_id={id} />
-        </div>
-      </section>
-
       <section className="rounded-2xl bg-card p-4 gold-border">
         <h2 className="font-display text-lg">History</h2>
         <p className="mt-1 text-xs text-muted-foreground">
@@ -73,7 +66,14 @@ function AdminPropertyView() {
         <ClientReport property_id={id} service_date={selectedStr} />
       ) : selectedStr ? (
         <p className="text-sm text-muted-foreground">No report on {format(selected!, "PPP")}.</p>
-      ) : null}
+      ) : (
+        <section>
+          <h2 className="font-display text-xl">Most recent report</h2>
+          <div className="mt-3">
+            <ClientReport property_id={id} />
+          </div>
+        </section>
+      )}
     </div>
   );
 }
