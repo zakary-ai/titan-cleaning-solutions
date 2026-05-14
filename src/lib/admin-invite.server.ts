@@ -76,6 +76,7 @@ export async function inviteUserForProperty(input: {
         invited_for_property: property.name,
         invited_role: input.role,
       },
+      ...(input.redirect_to ? { redirectTo: input.redirect_to } : {}),
     });
 
   if (invited?.user) {
