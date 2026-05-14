@@ -31,6 +31,7 @@ import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authe
 import { Route as AuthenticatedSupervisorPropertyIdRouteImport } from './routes/_authenticated/supervisor/property.$id'
 import { Route as AuthenticatedClientPropertyIdRouteImport } from './routes/_authenticated/client/property.$id'
 import { Route as AuthenticatedAdminPropertiesIdRouteImport } from './routes/_authenticated/admin/properties.$id'
+import { Route as AuthenticatedAdminPropertyIdViewRouteImport } from './routes/_authenticated/admin/property.$id.view'
 
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
@@ -152,6 +153,12 @@ const AuthenticatedAdminPropertiesIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedAdminPropertiesRoute,
   } as any)
+const AuthenticatedAdminPropertyIdViewRoute =
+  AuthenticatedAdminPropertyIdViewRouteImport.update({
+    id: '/property/$id/view',
+    path: '/property/$id/view',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/admin/properties/$id': typeof AuthenticatedAdminPropertiesIdRoute
   '/client/property/$id': typeof AuthenticatedClientPropertyIdRoute
   '/supervisor/property/$id': typeof AuthenticatedSupervisorPropertyIdRoute
+  '/admin/property/$id/view': typeof AuthenticatedAdminPropertyIdViewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -195,6 +203,7 @@ export interface FileRoutesByTo {
   '/admin/properties/$id': typeof AuthenticatedAdminPropertiesIdRoute
   '/client/property/$id': typeof AuthenticatedClientPropertyIdRoute
   '/supervisor/property/$id': typeof AuthenticatedSupervisorPropertyIdRoute
+  '/admin/property/$id/view': typeof AuthenticatedAdminPropertyIdViewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -220,6 +229,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/properties/$id': typeof AuthenticatedAdminPropertiesIdRoute
   '/_authenticated/client/property/$id': typeof AuthenticatedClientPropertyIdRoute
   '/_authenticated/supervisor/property/$id': typeof AuthenticatedSupervisorPropertyIdRoute
+  '/_authenticated/admin/property/$id/view': typeof AuthenticatedAdminPropertyIdViewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -245,6 +255,7 @@ export interface FileRouteTypes {
     | '/admin/properties/$id'
     | '/client/property/$id'
     | '/supervisor/property/$id'
+    | '/admin/property/$id/view'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -265,6 +276,7 @@ export interface FileRouteTypes {
     | '/admin/properties/$id'
     | '/client/property/$id'
     | '/supervisor/property/$id'
+    | '/admin/property/$id/view'
   id:
     | '__root__'
     | '/'
@@ -289,6 +301,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/properties/$id'
     | '/_authenticated/client/property/$id'
     | '/_authenticated/supervisor/property/$id'
+    | '/_authenticated/admin/property/$id/view'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -456,6 +469,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPropertiesIdRouteImport
       parentRoute: typeof AuthenticatedAdminPropertiesRoute
     }
+    '/_authenticated/admin/property/$id/view': {
+      id: '/_authenticated/admin/property/$id/view'
+      path: '/property/$id/view'
+      fullPath: '/admin/property/$id/view'
+      preLoaderRoute: typeof AuthenticatedAdminPropertyIdViewRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
@@ -479,6 +499,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminPropertiesRoute: typeof AuthenticatedAdminPropertiesRouteWithChildren
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+  AuthenticatedAdminPropertyIdViewRoute: typeof AuthenticatedAdminPropertyIdViewRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
@@ -488,6 +509,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
     AuthenticatedAdminPropertiesRouteWithChildren,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+  AuthenticatedAdminPropertyIdViewRoute: AuthenticatedAdminPropertyIdViewRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
@@ -555,3 +577,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
