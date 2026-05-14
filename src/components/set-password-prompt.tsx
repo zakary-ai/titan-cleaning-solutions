@@ -75,14 +75,22 @@ export function SetPasswordPrompt() {
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="new-password">New password</Label>
-            <Input id="new-password" type="password" required minLength={8} value={password}
-              onChange={(e) => setPassword(e.target.value)} placeholder="Min 8 characters" />
+            <Input id="new-password" type="password" required minLength={10} value={password}
+              onChange={(e) => setPassword(e.target.value)} placeholder="At least 10 characters" />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="confirm-password">Confirm password</Label>
-            <Input id="confirm-password" type="password" required minLength={8} value={confirm}
+            <Input id="confirm-password" type="password" required minLength={10} value={confirm}
               onChange={(e) => setConfirm(e.target.value)} />
           </div>
+          <ul className="text-xs text-muted-foreground space-y-1 rounded-md border p-3">
+            <li className={password.length >= 10 ? "text-green-600" : ""}>• At least 10 characters</li>
+            <li className={/[A-Z]/.test(password) ? "text-green-600" : ""}>• One uppercase letter</li>
+            <li className={/[a-z]/.test(password) ? "text-green-600" : ""}>• One lowercase letter</li>
+            <li className={/[0-9]/.test(password) ? "text-green-600" : ""}>• One number</li>
+            <li className={/[^A-Za-z0-9]/.test(password) ? "text-green-600" : ""}>• One symbol (e.g. !@#$%)</li>
+            <li>• Avoid common words & reused passwords (checked against known data breaches)</li>
+          </ul>
           <Button type="submit" disabled={submitting} className="w-full">
             {submitting ? "Saving…" : "Save password"}
           </Button>
