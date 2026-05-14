@@ -68,6 +68,27 @@ export type Database = {
           },
         ]
       }
+      issue_reads: {
+        Row: {
+          id: string
+          issue_id: string
+          last_read_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          issue_id: string
+          last_read_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          issue_id?: string
+          last_read_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       issues: {
         Row: {
           area_id: string | null

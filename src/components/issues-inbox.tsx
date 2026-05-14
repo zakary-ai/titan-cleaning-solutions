@@ -1,6 +1,6 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listIssues, getIssueThread, replyToIssue, setIssueStatus } from "@/lib/issues.functions";
+import { listIssues, getIssueThread, replyToIssue, setIssueStatus, markIssueRead } from "@/lib/issues.functions";
 import { signMediaUrl } from "@/lib/uploads.functions";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Paperclip, Loader2, ArrowLeft, X } from "lucide-react";
+import { Paperclip, Loader2, ArrowLeft, X, Film } from "lucide-react";
 
 type FilterStatus = "open" | "resolved" | "all";
 type IssueStatus = "open" | "resolved";
@@ -19,6 +19,7 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
   const get = useServerFn(getIssueThread);
   const reply = useServerFn(replyToIssue);
   const setStatus = useServerFn(setIssueStatus);
+  const markRead = useServerFn(markIssueRead);
   const qc = useQueryClient();
 
   const [filter, setFilter] = useState<FilterStatus>("open");
@@ -37,6 +38,17 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
     queryFn: () => get({ data: { id: selected! } }),
     enabled: !!selected,
   });
+
+  // Mark thread read whenever it (re)loads
+  useEffect(() => {
+    if (!selected || !thread) return;
+    markRead({ data: { issue_id: selected } })
+      .then(() => qc.invalidateQueries({ queryKey: ["unread-issues"] }))
+      .catch(() => {});
+  }, [selected, thread, markRead, qc]);
+
+  const [showVideo, setShowVideo] = useState(false);
+  useEffect(() => { setShowVideo(false); }, [selected]);
 
   const sendReply = useMutation({
     mutationFn: async () => {
@@ -140,6 +152,26 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
                   </Select>
                 )}
               </div>
+
+              {/* Original upload the issue refers to */}
+              {thread.upload?.file_url && (
+                <div className="border-b border-border/60 px-4 py-3">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowVideo((v) => !v)}
+                  >
+                    <Film className="mr-2 h-4 w-4" />
+                    {showVideo ? "Hide" : "View"} {thread.upload.file_type === "image" ? "photo" : "video"} in question
+                  </Button>
+                  {showVideo && (
+                    <div className="mt-3">
+                      <MessageAttachment path={thread.upload.file_url} />
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Messages — the only scrolling region */}
               <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-3">

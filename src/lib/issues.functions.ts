@@ -110,3 +110,46 @@ export const setIssueStatus = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// Mark a thread read (called when user opens it)
+export const markIssueRead = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ issue_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("issue_reads").upsert(
+      { user_id: context.userId, issue_id: data.issue_id, last_read_at: new Date().toISOString() },
+      { onConflict: "user_id,issue_id" },
+    );
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// Total unread messages across all issues visible to current user
+export const getUnreadIssueCount = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    // Issues the user can see (RLS handles visibility)
+    const { data: issues } = await context.supabase
+      .from("issues").select("id").limit(500);
+    const ids = (issues ?? []).map((i: any) => i.id);
+    if (ids.length === 0) return { count: 0 };
+
+    const [{ data: messages }, { data: reads }] = await Promise.all([
+      context.supabase.from("messages")
+        .select("issue_id,sender_id,created_at")
+        .in("issue_id", ids).limit(2000),
+      context.supabase.from("issue_reads")
+        .select("issue_id,last_read_at")
+        .eq("user_id", context.userId).in("issue_id", ids),
+    ]);
+    const lastRead = new Map<string, number>();
+    for (const r of reads ?? []) lastRead.set(r.issue_id, new Date(r.last_read_at).getTime());
+
+    let count = 0;
+    for (const m of messages ?? []) {
+      if (m.sender_id === context.userId) continue;
+      const lr = lastRead.get(m.issue_id) ?? 0;
+      if (new Date(m.created_at).getTime() > lr) count++;
+    }
+    return { count };
+  });

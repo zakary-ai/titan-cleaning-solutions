@@ -14,7 +14,7 @@ function ClientLayout() {
     <RoleShell brandSubtitle="Client Portal" items={[
       { to: "/client", label: "Today", icon: ClipboardCheck },
       { to: "/client/history", label: "History", icon: CalendarDays },
-      { to: "/client/issues", label: "Comments", icon: MessageSquare },
+      { to: "/client/issues", label: "Comments", icon: MessageSquare, showUnread: true },
     ]}>
       <Outlet />
     </RoleShell>
