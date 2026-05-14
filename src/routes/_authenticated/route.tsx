@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, Navigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { Sparkles } from "lucide-react";
+import { SetPasswordPrompt } from "@/components/set-password-prompt";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthenticatedLayout,
@@ -17,5 +18,10 @@ function AuthenticatedLayout() {
   }
   if (!session) return <Navigate to="/login" />;
   if (!role) return <Navigate to="/pending" />;
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+      <SetPasswordPrompt />
+    </>
+  );
 }
