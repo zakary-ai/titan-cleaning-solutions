@@ -22,10 +22,10 @@ function UsersPage() {
   const qc = useQueryClient();
   const { data: users = [] } = useQuery({ queryKey: ["users-all"], queryFn: () => list() });
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ email: "", full_name: "", role: "supervisor" as const, organization_name: "", password: "" });
+  const [form, setForm] = useState({ email: "", full_name: "", role: "supervisor" as const, organization_name: "" });
   const m = useMutation({
-    mutationFn: () => invite({ data: form as any }),
-    onSuccess: () => { toast.success("User invited"); setOpen(false); setForm({ email: "", full_name: "", role: "supervisor", organization_name: "", password: "" }); qc.invalidateQueries({ queryKey: ["users-all"] }); },
+    mutationFn: () => invite({ data: { ...form, redirect_to: `${window.location.origin}/accept-invite` } as any }),
+    onSuccess: () => { toast.success("Invitation email sent"); setOpen(false); setForm({ email: "", full_name: "", role: "supervisor", organization_name: "" }); qc.invalidateQueries({ queryKey: ["users-all"] }); },
     onError: (e: any) => toast.error(e.message),
   });
 
