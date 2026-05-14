@@ -69,15 +69,15 @@ export function RoleShell({ items, brandSubtitle, children }: { items: NavItem[]
       {/* Mobile bottom tab bar */}
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-sidebar/95 backdrop-blur md:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-        <div className="grid grid-cols-4">
-          {items.slice(0, 4).map((it) => (
+        <div className="grid" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
+          {items.map((it) => (
             <Link key={it.to} to={it.to}
               className={cn(
-                "flex flex-col items-center gap-1 py-2.5 text-[10px]",
+                "flex flex-col items-center gap-1 py-2.5 text-[10px] leading-tight text-center px-1",
                 isActive(it.to) ? "text-gold" : "text-muted-foreground"
               )}>
               <it.icon className="h-5 w-5" />
-              {it.label}
+              <span className="truncate max-w-full">{it.label}</span>
             </Link>
           ))}
         </div>
