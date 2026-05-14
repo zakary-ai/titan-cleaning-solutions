@@ -135,3 +135,17 @@ export const unassignUser = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const unassignUserFromProperty = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    user_id: z.string().uuid(),
+    property_id: z.string().uuid(),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    await ensureAdmin(context.supabase, context.userId);
+    const { error } = await context.supabase.from("property_assignments")
+      .delete().eq("user_id", data.user_id).eq("property_id", data.property_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
