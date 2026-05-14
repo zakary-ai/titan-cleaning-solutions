@@ -58,6 +58,7 @@ export async function inviteUserForProperty(input: {
   email: string;
   full_name: string;
   role: "client" | "supervisor";
+  redirect_to?: string | null;
 }) {
   const { data: property } = await supabaseAdmin
     .from("properties")
