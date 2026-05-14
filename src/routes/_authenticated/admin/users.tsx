@@ -71,7 +71,7 @@ function UsersPage() {
       <div className="mt-6 overflow-hidden rounded-xl bg-card gold-border">
         <table className="w-full text-sm">
           <thead><tr className="text-left text-xs uppercase tracking-wider text-muted-foreground">
-            <th className="px-4 py-3">Name</th><th className="px-4 py-3">Email</th><th className="px-4 py-3">Role</th><th className="px-4 py-3">Org</th>
+            <th className="px-4 py-3">Name</th><th className="px-4 py-3">Email</th><th className="px-4 py-3">Role</th><th className="px-4 py-3">Org</th><th className="px-4 py-3" />
           </tr></thead>
           <tbody>
             {users.map((u: any) => (
@@ -80,6 +80,29 @@ function UsersPage() {
                 <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
                 <td className="px-4 py-3"><span className="rounded-md bg-secondary px-2 py-0.5 text-xs uppercase tracking-wider text-gold">{u.role || "none"}</span></td>
                 <td className="px-4 py-3 text-muted-foreground">{u.organization_name || "—"}</td>
+                <td className="px-4 py-3 text-right">
+                  {u.id !== me?.id && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="icon" variant="ghost" disabled={removeM.isPending}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete {u.full_name || u.email}?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This permanently removes the account, role, and all property assignments. This cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => removeM.mutate(u.id)}>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
