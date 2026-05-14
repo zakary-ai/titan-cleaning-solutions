@@ -1,14 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listUsers } from "@/lib/users.functions";
+import { listUsers, deleteUser } from "@/lib/users.functions";
 import { inviteUser } from "@/lib/invite.functions";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -19,8 +21,15 @@ export const Route = createFileRoute("/_authenticated/admin/users")({
 function UsersPage() {
   const list = useServerFn(listUsers);
   const invite = useServerFn(inviteUser);
+  const remove = useServerFn(deleteUser);
+  const { user: me } = useAuth();
   const qc = useQueryClient();
   const { data: users = [] } = useQuery({ queryKey: ["users-all"], queryFn: () => list() });
+  const removeM = useMutation({
+    mutationFn: (user_id: string) => remove({ data: { user_id } }),
+    onSuccess: () => { toast.success("User deleted"); qc.invalidateQueries({ queryKey: ["users-all"] }); },
+    onError: (e: any) => toast.error(e.message),
+  });
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ email: "", full_name: "", role: "supervisor" as const, organization_name: "" });
   const m = useMutation({
@@ -62,7 +71,7 @@ function UsersPage() {
       <div className="mt-6 overflow-hidden rounded-xl bg-card gold-border">
         <table className="w-full text-sm">
           <thead><tr className="text-left text-xs uppercase tracking-wider text-muted-foreground">
-            <th className="px-4 py-3">Name</th><th className="px-4 py-3">Email</th><th className="px-4 py-3">Role</th><th className="px-4 py-3">Org</th>
+            <th className="px-4 py-3">Name</th><th className="px-4 py-3">Email</th><th className="px-4 py-3">Role</th><th className="px-4 py-3">Org</th><th className="px-4 py-3" />
           </tr></thead>
           <tbody>
             {users.map((u: any) => (
@@ -71,6 +80,29 @@ function UsersPage() {
                 <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
                 <td className="px-4 py-3"><span className="rounded-md bg-secondary px-2 py-0.5 text-xs uppercase tracking-wider text-gold">{u.role || "none"}</span></td>
                 <td className="px-4 py-3 text-muted-foreground">{u.organization_name || "—"}</td>
+                <td className="px-4 py-3 text-right">
+                  {u.id !== me?.id && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="icon" variant="ghost" disabled={removeM.isPending}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete {u.full_name || u.email}?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This permanently removes the account, role, and all property assignments. This cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => removeM.mutate(u.id)}>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>

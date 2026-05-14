@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listProperties, createProperty, assignUser } from "@/lib/properties.functions";
+import { listProperties, createProperty, assignUser, unassignUserFromProperty } from "@/lib/properties.functions";
 import { inviteClientToProperty, listAssignableUsers } from "@/lib/invite.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -172,6 +172,7 @@ function AssignDialog({ propertyId, propertyName, role, trigger }: {
 }) {
   const list = useServerFn(listAssignableUsers);
   const assign = useServerFn(assignUser);
+  const unassign = useServerFn(unassignUserFromProperty);
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const { data: users = [], refetch } = useQuery({
@@ -188,6 +189,15 @@ function AssignDialog({ propertyId, propertyName, role, trigger }: {
     },
     onError: (e: any) => toast.error(e.message),
   });
+  const u = useMutation({
+    mutationFn: (userId: string) => unassign({ data: { user_id: userId, property_id: propertyId } }),
+    onSuccess: () => {
+      toast.success("Unassigned");
+      refetch();
+      qc.invalidateQueries({ queryKey: ["properties"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
   const label = role === "client" ? "users" : "supervisors";
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -198,16 +208,21 @@ function AssignDialog({ propertyId, propertyName, role, trigger }: {
           {users.length === 0 && (
             <p className="py-6 text-center text-sm text-muted-foreground">No existing {label} yet.</p>
           )}
-          {users.map((u: any) => (
-            <div key={u.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+          {users.map((usr: any) => (
+            <div key={usr.id} className="flex items-center justify-between rounded-lg border border-border p-3">
               <div>
-                <div className="text-sm font-medium">{u.full_name || u.email}</div>
-                <div className="text-xs text-muted-foreground">{u.email}</div>
+                <div className="text-sm font-medium">{usr.full_name || usr.email}</div>
+                <div className="text-xs text-muted-foreground">{usr.email}</div>
               </div>
-              <Button size="sm" variant={u.assigned ? "ghost" : "default"} disabled={u.assigned || m.isPending}
-                onClick={() => m.mutate(u.id)}>
-                {u.assigned ? "Assigned" : "Assign"}
-              </Button>
+              {usr.assigned ? (
+                <Button size="sm" variant="outline" disabled={u.isPending} onClick={() => u.mutate(usr.id)}>
+                  Unassign
+                </Button>
+              ) : (
+                <Button size="sm" disabled={m.isPending} onClick={() => m.mutate(usr.id)}>
+                  Assign
+                </Button>
+              )}
             </div>
           ))}
         </div>
