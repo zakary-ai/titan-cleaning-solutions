@@ -1,14 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listProperties, createProperty } from "@/lib/properties.functions";
-import { inviteClientToProperty } from "@/lib/invite.functions";
+import { listProperties, createProperty, assignUser } from "@/lib/properties.functions";
+import { inviteClientToProperty, listAssignableUsers } from "@/lib/invite.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, MapPin, UserPlus } from "lucide-react";
+import { Plus, MapPin, UserPlus, Users, Shield, ShieldPlus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
