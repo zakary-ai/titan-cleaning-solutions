@@ -36,31 +36,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let active = true;
 
-    const resolveSession = async (s: Session | null) => {
-      if (!active) return;
-      setSession(s);
-      try {
-        if (s?.user) {
-          await loadRoleAndProfile(s.user.id);
-        } else {
-          setRole(null);
-          setProfile(null);
-        }
-      } catch (error) {
-        console.error(error);
-        setRole(null);
-        setProfile(null);
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
-      void resolveSession(s);
+      if (active) setSession(s);
     });
 
-    supabase.auth.getSession().then(async ({ data }) => {
-      await resolveSession(data.session);
+    supabase.auth.getSession().then(({ data }) => {
+      if (active) setSession(data.session);
     }).catch((error) => {
       console.error(error);
       if (active) setLoading(false);
@@ -68,6 +49,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => { active = false; subscription.unsubscribe(); };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!session?.user) {
+      setRole(null);
+      setProfile(null);
+      setLoading(false);
+      return () => { active = false; };
+    }
+
+    setLoading(true);
+    loadRoleAndProfile(session.user.id)
+      .catch((error) => {
+        console.error(error);
+        if (active) {
+          setRole(null);
+          setProfile(null);
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => { active = false; };
+  }, [session?.user?.id]);
 
   const value: AuthCtx = {
     session,
