@@ -32,12 +32,11 @@ function AdminOverview() {
     <div>
       <h1 className="font-display text-3xl">Operations Overview</h1>
       <p className="mt-1 text-sm text-muted-foreground">Tonight's activity across all properties.</p>
-      <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-5">
-        <StatCard icon={Building2} label="Properties" value={data?.totalProperties ?? "—"} />
-        <StatCard icon={CheckCircle2} label="Uploads today" value={data?.uploadsToday ?? "—"} tone="success" />
-        <StatCard icon={AlertTriangle} label="Missing today" value={data?.missingToday ?? "—"} tone="danger" />
+      <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <StatCard icon={CheckCircle2} label="Properties completed today" value={data?.propertiesCompletedToday ?? "—"} tone="success" />
+        <StatCard icon={AlertTriangle} label="Properties missing today" value={data?.propertiesMissingToday ?? "—"} tone="danger" />
         <StatCard icon={MessageSquare} label="Open issues" value={data?.openIssues ?? "—"} />
-        <StatCard icon={MessagesSquare} label="Comments / week" value={data?.commentsThisWeek ?? "—"} />
+        <StatCard icon={MessagesSquare} label="Comments this week" value={data?.commentsThisWeek ?? "—"} />
       </div>
     </div>
   );
