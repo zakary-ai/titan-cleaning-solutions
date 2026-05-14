@@ -40,7 +40,7 @@ function UsersPage() {
             <form onSubmit={(e) => { e.preventDefault(); m.mutate(); }} className="space-y-3">
               <div><Label>Full name</Label><Input required value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></div>
               <div><Label>Email</Label><Input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-              <div><Label>Temporary password</Label><Input required minLength={8} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="min 8 chars" /></div>
+              <p className="text-xs text-muted-foreground">An invitation email will be sent so they can set their own password.</p>
               <div>
                 <Label>Role</Label>
                 <Select value={form.role} onValueChange={(v: any) => setForm({ ...form, role: v })}>
