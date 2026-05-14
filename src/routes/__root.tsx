@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
@@ -7,9 +7,11 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -59,6 +61,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "theme-color", content: "#0d0d0d" },
       { title: "Titan Solutions — Cleaning Operations" },
       { name: "description", content: "Nightly proof-of-work and review portal for premium hospitality cleaning operations." },
+      { property: "og:title", content: "Titan Solutions — Cleaning Operations" },
+      { name: "twitter:title", content: "Titan Solutions — Cleaning Operations" },
+      { property: "og:description", content: "Nightly proof-of-work and review portal for premium hospitality cleaning operations." },
+      { name: "twitter:description", content: "Nightly proof-of-work and review portal for premium hospitality cleaning operations." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/cba0fd45-aa87-4583-b53d-40f5fb7d6349/id-preview-5d6779ef--e721eb2f-b2c1-42c6-8775-a7dc7b658100.lovable.app-1778781425297.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/cba0fd45-aa87-4583-b53d-40f5fb7d6349/id-preview-5d6779ef--e721eb2f-b2c1-42c6-8775-a7dc7b658100.lovable.app-1778781425297.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:type", content: "website" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -88,11 +98,25 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+function AuthInvalidator() {
+  const router = useRouter();
+  const qc = useQueryClient();
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      router.invalidate();
+      qc.invalidateQueries();
+    });
+    return () => subscription.unsubscribe();
+  }, [router, qc]);
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <AuthInvalidator />
         <Outlet />
         <Toaster theme="dark" />
       </AuthProvider>
