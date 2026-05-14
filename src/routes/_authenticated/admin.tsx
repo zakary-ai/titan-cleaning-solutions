@@ -15,7 +15,7 @@ function AdminLayout() {
       { to: "/admin", label: "Overview", icon: LayoutDashboard },
       { to: "/admin/properties", label: "Properties", icon: Building2 },
       { to: "/admin/users", label: "Users", icon: Users },
-      { to: "/admin/issues", label: "Issues", icon: MessageSquare },
+      { to: "/admin/issues", label: "Issues", icon: MessageSquare, showUnread: true },
       { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
     ]}>
       <Outlet />
