@@ -8,33 +8,59 @@ import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
 export function SetPasswordPrompt() {
-  const { user } = useAuth();
+  const { user, session, loading } = useAuth();
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (loading) return;
+    if (!user || !session) { setOpen(false); return; }
     const passwordSet = user.user_metadata?.password_set === true;
     setOpen(!passwordSet);
-  }, [user?.id, user?.user_metadata?.password_set]);
+  }, [loading, user?.id, user?.user_metadata?.password_set, session?.access_token]);
 
-  if (!user) return null;
+  if (!user || !session) return null;
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password.length < 8) return toast.error("Password must be at least 8 characters.");
     if (password !== confirm) return toast.error("Passwords do not match.");
     setSubmitting(true);
-    const { error } = await supabase.auth.updateUser({
-      password,
-      data: { ...(user.user_metadata ?? {}), password_set: true },
-    });
-    setSubmitting(false);
-    if (error) return toast.error(error.message);
-    toast.success("Password set. You can use it to sign in next time.");
-    setOpen(false);
+    try {
+      // Ensure we have a fresh, valid session before calling updateUser.
+      // Magic-link sessions can be short-lived and cause "Auth session missing".
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess.session) {
+        await supabase.auth.refreshSession();
+      } else {
+        // Proactively refresh to avoid expired access tokens.
+        await supabase.auth.refreshSession({ refresh_token: sess.session.refresh_token });
+      }
+      const { data: fresh } = await supabase.auth.getUser();
+      if (!fresh.user) {
+        toast.error("Your session expired. Please sign in again.");
+        await supabase.auth.signOut();
+        setSubmitting(false);
+        return;
+      }
+      const { error } = await supabase.auth.updateUser({
+        password,
+        data: { ...(fresh.user.user_metadata ?? {}), password_set: true },
+      });
+      if (error) {
+        toast.error(error.message);
+        setSubmitting(false);
+        return;
+      }
+      toast.success("Password set. You can use it to sign in next time.");
+      setOpen(false);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Could not set password.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
