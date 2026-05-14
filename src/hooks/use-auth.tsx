@@ -32,23 +32,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+    let active = true;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, s) => {
+      if (!active) return;
       setSession(s);
       if (s?.user) {
-        setTimeout(() => { loadRoleAndProfile(s.user.id); }, 0);
+        await loadRoleAndProfile(s.user.id);
       } else {
         setRole(null);
         setProfile(null);
       }
+      setLoading(false);
     });
 
     supabase.auth.getSession().then(async ({ data }) => {
+      if (!active) return;
       setSession(data.session);
       if (data.session?.user) await loadRoleAndProfile(data.session.user.id);
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => { active = false; subscription.unsubscribe(); };
   }, []);
 
   const value: AuthCtx = {
