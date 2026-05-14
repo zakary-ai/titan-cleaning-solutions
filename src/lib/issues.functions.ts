@@ -81,11 +81,16 @@ export const replyToIssue = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({
     issue_id: z.string().uuid(),
-    body: z.string().trim().min(1).max(2000),
+    body: z.string().trim().max(2000).default(""),
+    attachment_url: z.string().trim().max(1024).optional().nullable(),
   }).parse(d))
   .handler(async ({ data, context }) => {
+    if (!data.body && !data.attachment_url) throw new Error("Empty message");
     const { error } = await context.supabase.from("messages").insert({
-      issue_id: data.issue_id, sender_id: context.userId, body: data.body,
+      issue_id: data.issue_id,
+      sender_id: context.userId,
+      body: data.body || "",
+      attachment_url: data.attachment_url ?? null,
     });
     if (error) throw new Error(error.message);
     return { ok: true };
