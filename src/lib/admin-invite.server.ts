@@ -5,31 +5,43 @@ export async function inviteUserAdmin(input: {
   full_name: string;
   role: "admin" | "supervisor" | "client";
   organization_name?: string | null;
-  password: string;
+  redirect_to?: string | null;
 }) {
-  const { data, error } = await supabaseAdmin.auth.admin.createUser({
-    email: input.email,
-    password: input.password,
-    email_confirm: true,
-    user_metadata: {
-      full_name: input.full_name,
-      organization_name: input.organization_name ?? null,
-    },
-  });
-  if (error || !data.user) throw new Error(error?.message ?? "Failed to create user");
+  let userId: string | null = null;
+  const { data: invited, error: inviteErr } =
+    await supabaseAdmin.auth.admin.inviteUserByEmail(input.email, {
+      data: {
+        full_name: input.full_name,
+        organization_name: input.organization_name ?? null,
+        invited_role: input.role,
+      },
+      ...(input.redirect_to ? { redirectTo: input.redirect_to } : {}),
+    });
 
-  if (input.organization_name) {
-    await supabaseAdmin.from("profiles").update({
-      organization_name: input.organization_name,
-      full_name: input.full_name,
-    }).eq("id", data.user.id);
+  if (invited?.user) {
+    userId = invited.user.id;
+  } else if (inviteErr) {
+    const { data: existing } = await supabaseAdmin
+      .from("profiles").select("id").eq("email", input.email).maybeSingle();
+    if (!existing) throw new Error(inviteErr.message);
+    userId = existing.id;
+  }
+  if (!userId) throw new Error("Failed to invite user");
+
+  await supabaseAdmin.from("profiles").update({
+    full_name: input.full_name,
+    ...(input.organization_name ? { organization_name: input.organization_name } : {}),
+  }).eq("id", userId);
+
+  const { data: existingRole } = await supabaseAdmin
+    .from("user_roles").select("id").eq("user_id", userId).eq("role", input.role).maybeSingle();
+  if (!existingRole) {
+    const { error: roleError } = await supabaseAdmin.from("user_roles")
+      .insert({ user_id: userId, role: input.role });
+    if (roleError) throw new Error(roleError.message);
   }
 
-  const { error: roleError } = await supabaseAdmin.from("user_roles")
-    .insert({ user_id: data.user.id, role: input.role });
-  if (roleError) throw new Error(roleError.message);
-
-  return { user_id: data.user.id, email: data.user.email };
+  return { user_id: userId, email: input.email };
 }
 
 /**
