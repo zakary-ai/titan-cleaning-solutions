@@ -41,7 +41,7 @@ function PropertiesPage() {
     onSuccess: () => {
       toast.success("Property created");
       setOpen(false);
-      setForm({ name: "", address: "", client_organization: "", areas: "" });
+      setForm({ name: "", address: "", areas: "" });
       qc.invalidateQueries({ queryKey: ["properties"] });
     },
     onError: (e: any) => toast.error(e.message),
