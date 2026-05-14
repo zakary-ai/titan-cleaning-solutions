@@ -30,6 +30,7 @@ export const inviteClientToProperty = createServerFn({ method: "POST" })
     email: z.string().email().toLowerCase().max(255),
     full_name: z.string().trim().min(1).max(120),
     role: z.enum(["client", "supervisor"]).default("client"),
+    redirect_to: z.string().url().max(500).optional().nullable(),
   }).parse(d))
   .handler(async ({ data, context }) => {
     await ensureAdmin(context.supabase, context.userId);
