@@ -1,14 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listProperties, createProperty } from "@/lib/properties.functions";
-import { inviteClientToProperty } from "@/lib/invite.functions";
+import { listProperties, createProperty, assignUser } from "@/lib/properties.functions";
+import { inviteClientToProperty, listAssignableUsers } from "@/lib/invite.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, MapPin, UserPlus } from "lucide-react";
+import { Plus, MapPin, UserPlus, Users, Shield, ShieldPlus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -99,20 +99,6 @@ function PropertiesPage() {
 }
 
 function PropertyCard({ property: p }: { property: any }) {
-  const invite = useServerFn(inviteClientToProperty);
-  const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ email: "", full_name: "" });
-
-  const m = useMutation({
-    mutationFn: () => invite({ data: { property_id: p.id, email: form.email, full_name: form.full_name } }),
-    onSuccess: () => {
-      toast.success("Invitation sent");
-      setOpen(false);
-      setForm({ email: "", full_name: "" });
-    },
-    onError: (e: any) => toast.error(e.message),
-  });
-
   return (
     <div className="rounded-xl bg-card p-5 gold-border transition hover:gold-glow">
       <Link to="/admin/properties/$id" params={{ id: p.id }} className="block">
@@ -123,37 +109,110 @@ function PropertyCard({ property: p }: { property: any }) {
         <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
           <MapPin className="h-3 w-3" /> {p.address || "—"}
         </div>
-        <div className="mt-3 text-xs text-gold">{p.client_organization || "Unassigned"}</div>
       </Link>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button size="sm" variant="outline" className="mt-4 w-full">
-            <UserPlus className="mr-2 h-4 w-4" /> Add users
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Invite client to {p.name}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={(e) => { e.preventDefault(); m.mutate(); }} className="space-y-3">
-            <div>
-              <Label>Full name</Label>
-              <Input required value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
-            </div>
-            <div>
-              <Label>Email</Label>
-              <Input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              We'll email them an invitation to set up their account and access {p.name}.
-            </p>
-            <Button type="submit" disabled={m.isPending} className="w-full">
-              {m.isPending ? "Sending…" : "Send invitation"}
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <InviteDialog propertyId={p.id} propertyName={p.name} role="client"
+          trigger={<Button size="sm" variant="outline"><UserPlus className="mr-2 h-3.5 w-3.5" /> Add user</Button>} />
+        <AssignDialog propertyId={p.id} propertyName={p.name} role="client"
+          trigger={<Button size="sm" variant="outline"><Users className="mr-2 h-3.5 w-3.5" /> Assign user</Button>} />
+        <InviteDialog propertyId={p.id} propertyName={p.name} role="supervisor"
+          trigger={<Button size="sm" variant="outline"><ShieldPlus className="mr-2 h-3.5 w-3.5" /> Add supervisor</Button>} />
+        <AssignDialog propertyId={p.id} propertyName={p.name} role="supervisor"
+          trigger={<Button size="sm" variant="outline"><Shield className="mr-2 h-3.5 w-3.5" /> Assign supervisor</Button>} />
+      </div>
     </div>
   );
 }
+
+function InviteDialog({ propertyId, propertyName, role, trigger }: {
+  propertyId: string; propertyName: string; role: "client" | "supervisor"; trigger: React.ReactNode;
+}) {
+  const invite = useServerFn(inviteClientToProperty);
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ email: "", full_name: "" });
+  const m = useMutation({
+    mutationFn: () => invite({ data: { property_id: propertyId, email: form.email, full_name: form.full_name, role } }),
+    onSuccess: () => {
+      toast.success("Invitation sent");
+      setOpen(false);
+      setForm({ email: "", full_name: "" });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+  const label = role === "client" ? "user" : "supervisor";
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Add {label} to {propertyName}</DialogTitle></DialogHeader>
+        <form onSubmit={(e) => { e.preventDefault(); m.mutate(); }} className="space-y-3">
+          <div>
+            <Label>Full name</Label>
+            <Input required value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+          </div>
+          <div>
+            <Label>Email</Label>
+            <Input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            We'll email them an invitation to set up their account and download the app.
+          </p>
+          <Button type="submit" disabled={m.isPending} className="w-full">
+            {m.isPending ? "Sending…" : "Send invitation"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AssignDialog({ propertyId, propertyName, role, trigger }: {
+  propertyId: string; propertyName: string; role: "client" | "supervisor"; trigger: React.ReactNode;
+}) {
+  const list = useServerFn(listAssignableUsers);
+  const assign = useServerFn(assignUser);
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const { data: users = [], refetch } = useQuery({
+    queryKey: ["assignable-users", role, propertyId],
+    queryFn: () => list({ data: { role, property_id: propertyId } }),
+    enabled: open,
+  });
+  const m = useMutation({
+    mutationFn: (userId: string) => assign({ data: { property_id: propertyId, user_id: userId, role_on_property: role } }),
+    onSuccess: () => {
+      toast.success("Assigned");
+      refetch();
+      qc.invalidateQueries({ queryKey: ["properties"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+  const label = role === "client" ? "users" : "supervisors";
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Assign {label} to {propertyName}</DialogTitle></DialogHeader>
+        <div className="max-h-96 space-y-2 overflow-y-auto">
+          {users.length === 0 && (
+            <p className="py-6 text-center text-sm text-muted-foreground">No existing {label} yet.</p>
+          )}
+          {users.map((u: any) => (
+            <div key={u.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+              <div>
+                <div className="text-sm font-medium">{u.full_name || u.email}</div>
+                <div className="text-xs text-muted-foreground">{u.email}</div>
+              </div>
+              <Button size="sm" variant={u.assigned ? "ghost" : "default"} disabled={u.assigned || m.isPending}
+                onClick={() => m.mutate(u.id)}>
+                {u.assigned ? "Assigned" : "Assign"}
+              </Button>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+

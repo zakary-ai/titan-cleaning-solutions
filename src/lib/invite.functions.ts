@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { inviteUserAdmin, inviteClientForProperty } from "./admin-invite.server";
+import { inviteUserAdmin, inviteUserForProperty, listUsersByRoleAdmin } from "./admin-invite.server";
 
 async function ensureAdmin(supabase: any, userId: string) {
   const { data } = await supabase
@@ -29,8 +29,20 @@ export const inviteClientToProperty = createServerFn({ method: "POST" })
     property_id: z.string().uuid(),
     email: z.string().email().toLowerCase().max(255),
     full_name: z.string().trim().min(1).max(120),
+    role: z.enum(["client", "supervisor"]).default("client"),
   }).parse(d))
   .handler(async ({ data, context }) => {
     await ensureAdmin(context.supabase, context.userId);
-    return inviteClientForProperty(data);
+    return inviteUserForProperty(data);
+  });
+
+export const listAssignableUsers = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    role: z.enum(["client", "supervisor"]),
+    property_id: z.string().uuid(),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    await ensureAdmin(context.supabase, context.userId);
+    return listUsersByRoleAdmin(data.role, data.property_id);
   });
