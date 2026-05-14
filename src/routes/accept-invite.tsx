@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
-import { homeForRole } from "@/lib/role-routes";
 
 export const Route = createFileRoute("/accept-invite")({
   component: AcceptInvitePage,
