@@ -23,10 +23,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const loadRoleAndProfile = async (uid: string) => {
-    const [{ data: roleRow }, { data: profileRow }] = await Promise.all([
+    const [{ data: roleRow, error: roleError }, { data: profileRow, error: profileError }] = await Promise.all([
       supabase.from("user_roles").select("role").eq("user_id", uid).maybeSingle(),
       supabase.from("profiles").select("full_name,email,organization_name").eq("id", uid).maybeSingle(),
     ]);
+    if (roleError) throw roleError;
+    if (profileError) throw profileError;
     setRole((roleRow?.role as AppRole) ?? null);
     setProfile(profileRow ?? null);
   };
@@ -34,23 +36,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let active = true;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, s) => {
+    const resolveSession = async (s: Session | null) => {
       if (!active) return;
       setSession(s);
-      if (s?.user) {
-        await loadRoleAndProfile(s.user.id);
-      } else {
+      try {
+        if (s?.user) {
+          await loadRoleAndProfile(s.user.id);
+        } else {
+          setRole(null);
+          setProfile(null);
+        }
+      } catch (error) {
+        console.error(error);
         setRole(null);
         setProfile(null);
+      } finally {
+        if (active) setLoading(false);
       }
-      setLoading(false);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+      void resolveSession(s);
     });
 
     supabase.auth.getSession().then(async ({ data }) => {
-      if (!active) return;
-      setSession(data.session);
-      if (data.session?.user) await loadRoleAndProfile(data.session.user.id);
-      setLoading(false);
+      await resolveSession(data.session);
+    }).catch((error) => {
+      console.error(error);
+      if (active) setLoading(false);
     });
 
     return () => { active = false; subscription.unsubscribe(); };
