@@ -10,7 +10,11 @@ export type NavItem = { to: string; label: string; icon: React.ComponentType<{ c
 export function RoleShell({ items, brandSubtitle, children }: { items: NavItem[]; brandSubtitle: string; children: ReactNode }) {
   const { signOut, profile } = useAuth();
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const isActive = (to: string) => path === to || path.startsWith(to + "/");
+  // Index/overview routes (e.g. "/admin", "/client") must match exactly,
+  // otherwise they stay highlighted on every nested route.
+  const indexRoutes = new Set(items.filter((it) => !it.to.slice(1).includes("/") || items.some((other) => other !== it && other.to.startsWith(it.to + "/"))).map((it) => it.to));
+  const isActive = (to: string) =>
+    indexRoutes.has(to) ? path === to : path === to || path.startsWith(to + "/");
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
