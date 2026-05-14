@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PendingRouteImport } from './routes/pending'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
@@ -30,6 +31,11 @@ import { Route as AuthenticatedSupervisorPropertyIdRouteImport } from './routes/
 import { Route as AuthenticatedClientPropertyIdRouteImport } from './routes/_authenticated/client/property.$id'
 import { Route as AuthenticatedAdminPropertiesIdRouteImport } from './routes/_authenticated/admin/properties.$id'
 
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PendingRoute = PendingRouteImport.update({
   id: '/pending',
   path: '/pending',
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/accept-invite': typeof AcceptInviteRoute
   '/login': typeof LoginRoute
   '/pending': typeof PendingRoute
+  '/privacy': typeof PrivacyRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/client': typeof AuthenticatedClientRouteWithChildren
   '/supervisor': typeof AuthenticatedSupervisorRouteWithChildren
@@ -166,6 +173,7 @@ export interface FileRoutesByTo {
   '/accept-invite': typeof AcceptInviteRoute
   '/login': typeof LoginRoute
   '/pending': typeof PendingRoute
+  '/privacy': typeof PrivacyRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/issues': typeof AuthenticatedAdminIssuesRoute
   '/admin/properties': typeof AuthenticatedAdminPropertiesRouteWithChildren
@@ -186,6 +194,7 @@ export interface FileRoutesById {
   '/accept-invite': typeof AcceptInviteRoute
   '/login': typeof LoginRoute
   '/pending': typeof PendingRoute
+  '/privacy': typeof PrivacyRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/client': typeof AuthenticatedClientRouteWithChildren
   '/_authenticated/supervisor': typeof AuthenticatedSupervisorRouteWithChildren
@@ -209,6 +218,7 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/login'
     | '/pending'
+    | '/privacy'
     | '/admin'
     | '/client'
     | '/supervisor'
@@ -230,6 +240,7 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/login'
     | '/pending'
+    | '/privacy'
     | '/admin/analytics'
     | '/admin/issues'
     | '/admin/properties'
@@ -249,6 +260,7 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/login'
     | '/pending'
+    | '/privacy'
     | '/_authenticated/admin'
     | '/_authenticated/client'
     | '/_authenticated/supervisor'
@@ -272,10 +284,18 @@ export interface RootRouteChildren {
   AcceptInviteRoute: typeof AcceptInviteRoute
   LoginRoute: typeof LoginRoute
   PendingRoute: typeof PendingRoute
+  PrivacyRoute: typeof PrivacyRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pending': {
       id: '/pending'
       path: '/pending'
@@ -508,6 +528,7 @@ const rootRouteChildren: RootRouteChildren = {
   AcceptInviteRoute: AcceptInviteRoute,
   LoginRoute: LoginRoute,
   PendingRoute: PendingRoute,
+  PrivacyRoute: PrivacyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
