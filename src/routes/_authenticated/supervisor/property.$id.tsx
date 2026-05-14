@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getNightlyChecklist, recordUpload, submitNightlyReport, signMediaUrl, updateUploadNotes } from "@/lib/uploads.functions";
@@ -21,6 +21,7 @@ function NightlyChecklist() {
   const submit = useServerFn(submitNightlyReport);
   const updateNotes = useServerFn(updateUploadNotes);
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   const { data } = useQuery({
     queryKey: ["checklist", id, today],
@@ -29,7 +30,12 @@ function NightlyChecklist() {
 
   const submitReport = useMutation({
     mutationFn: () => submit({ data: { property_id: id, service_date: today } }),
-    onSuccess: () => { toast.success("Nightly report submitted"); qc.invalidateQueries({ queryKey: ["checklist", id, today] }); },
+    onSuccess: () => {
+      toast.success("Nightly report submitted");
+      try { localStorage.setItem(`submitted:${id}:${today}`, "1"); } catch {}
+      qc.invalidateQueries({ queryKey: ["checklist", id, today] });
+      navigate({ to: "/supervisor" });
+    },
     onError: (e: any) => toast.error(e.message),
   });
 
