@@ -14,16 +14,324 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cleaning_uploads: {
+        Row: {
+          area_id: string
+          file_type: Database["public"]["Enums"]["upload_file_type"] | null
+          file_url: string | null
+          id: string
+          notes: string | null
+          property_id: string
+          service_date: string
+          status: Database["public"]["Enums"]["upload_status"]
+          supervisor_id: string | null
+          uploaded_at: string
+        }
+        Insert: {
+          area_id: string
+          file_type?: Database["public"]["Enums"]["upload_file_type"] | null
+          file_url?: string | null
+          id?: string
+          notes?: string | null
+          property_id: string
+          service_date: string
+          status?: Database["public"]["Enums"]["upload_status"]
+          supervisor_id?: string | null
+          uploaded_at?: string
+        }
+        Update: {
+          area_id?: string
+          file_type?: Database["public"]["Enums"]["upload_file_type"] | null
+          file_url?: string | null
+          id?: string
+          notes?: string | null
+          property_id?: string
+          service_date?: string
+          status?: Database["public"]["Enums"]["upload_status"]
+          supervisor_id?: string | null
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cleaning_uploads_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "property_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cleaning_uploads_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      issues: {
+        Row: {
+          area_id: string | null
+          client_user_id: string | null
+          created_at: string
+          id: string
+          initial_comment: string | null
+          property_id: string
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["issue_status"]
+          title: string
+          upload_id: string | null
+        }
+        Insert: {
+          area_id?: string | null
+          client_user_id?: string | null
+          created_at?: string
+          id?: string
+          initial_comment?: string | null
+          property_id: string
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["issue_status"]
+          title: string
+          upload_id?: string | null
+        }
+        Update: {
+          area_id?: string | null
+          client_user_id?: string | null
+          created_at?: string
+          id?: string
+          initial_comment?: string | null
+          property_id?: string
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["issue_status"]
+          title?: string
+          upload_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issues_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "property_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issues_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issues_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "cleaning_uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          attachment_url: string | null
+          body: string
+          created_at: string
+          id: string
+          issue_id: string
+          sender_id: string | null
+        }
+        Insert: {
+          attachment_url?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          issue_id: string
+          sender_id?: string | null
+        }
+        Update: {
+          attachment_url?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          issue_id?: string
+          sender_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_issue_id_fkey"
+            columns: ["issue_id"]
+            isOneToOne: false
+            referencedRelation: "issues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          organization_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string
+          id: string
+          organization_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          organization_name?: string | null
+        }
+        Relationships: []
+      }
+      properties: {
+        Row: {
+          active: boolean
+          address: string | null
+          client_organization: string | null
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          address?: string | null
+          client_organization?: string | null
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          address?: string | null
+          client_organization?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      property_areas: {
+        Row: {
+          active: boolean
+          area_name: string
+          created_at: string
+          display_order: number
+          id: string
+          property_id: string
+          required_upload: boolean
+        }
+        Insert: {
+          active?: boolean
+          area_name: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          property_id: string
+          required_upload?: boolean
+        }
+        Update: {
+          active?: boolean
+          area_name?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          property_id?: string
+          required_upload?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_areas_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_assignments: {
+        Row: {
+          created_at: string
+          id: string
+          property_id: string
+          role_on_property: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          property_id: string
+          role_on_property: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          property_id?: string
+          role_on_property?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_assignments_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      client_can_see_property: {
+        Args: { _property_id: string; _user_id: string }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_assigned_to_property: {
+        Args: { _property_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "supervisor" | "client"
+      issue_status: "open" | "in_progress" | "resolved"
+      upload_file_type: "image" | "video"
+      upload_status: "uploaded" | "missing" | "reviewed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +458,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "supervisor", "client"],
+      issue_status: ["open", "in_progress", "resolved"],
+      upload_file_type: ["image", "video"],
+      upload_status: ["uploaded", "missing", "reviewed"],
+    },
   },
 } as const
