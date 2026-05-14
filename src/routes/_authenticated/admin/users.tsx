@@ -21,8 +21,15 @@ export const Route = createFileRoute("/_authenticated/admin/users")({
 function UsersPage() {
   const list = useServerFn(listUsers);
   const invite = useServerFn(inviteUser);
+  const remove = useServerFn(deleteUser);
+  const { user: me } = useAuth();
   const qc = useQueryClient();
   const { data: users = [] } = useQuery({ queryKey: ["users-all"], queryFn: () => list() });
+  const removeM = useMutation({
+    mutationFn: (user_id: string) => remove({ data: { user_id } }),
+    onSuccess: () => { toast.success("User deleted"); qc.invalidateQueries({ queryKey: ["users-all"] }); },
+    onError: (e: any) => toast.error(e.message),
+  });
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ email: "", full_name: "", role: "supervisor" as const, organization_name: "" });
   const m = useMutation({
