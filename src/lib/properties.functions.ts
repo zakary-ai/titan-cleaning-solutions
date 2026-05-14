@@ -24,12 +24,26 @@ export const createProperty = createServerFn({ method: "POST" })
     name: z.string().trim().min(1).max(120),
     address: z.string().trim().max(255).optional().nullable(),
     client_organization: z.string().trim().max(120).optional().nullable(),
+    areas: z.array(z.string().trim().min(1).max(120)).max(50).optional().default([]),
   }).parse(d))
   .handler(async ({ data, context }) => {
     await ensureAdmin(context.supabase, context.userId);
+    const { areas, ...propertyInput } = data;
     const { data: row, error } = await context.supabase
-      .from("properties").insert(data).select("*").single();
+      .from("properties").insert(propertyInput).select("*").single();
     if (error) throw new Error(error.message);
+
+    if (areas && areas.length > 0) {
+      const rows = areas.map((area_name, idx) => ({
+        property_id: row.id,
+        area_name,
+        required_upload: true,
+        display_order: idx + 1,
+        active: true,
+      }));
+      const { error: areaErr } = await context.supabase.from("property_areas").insert(rows);
+      if (areaErr) throw new Error(areaErr.message);
+    }
     return row;
   });
 
