@@ -40,10 +40,16 @@ function UsersPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-3xl">Users</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="font-display text-2xl md:text-3xl">Users</h1>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button><Plus className="mr-2 h-4 w-4" /> Invite user</Button></DialogTrigger>
+          <DialogTrigger asChild>
+            <Button size="sm" className="md:size-default">
+              <Plus className="h-4 w-4 md:mr-2" />
+              <span className="hidden sm:inline">Invite user</span>
+              <span className="sm:hidden ml-1">Invite</span>
+            </Button>
+          </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Invite user</DialogTitle></DialogHeader>
             <form onSubmit={(e) => { e.preventDefault(); m.mutate(); }} className="space-y-3">
@@ -68,7 +74,54 @@ function UsersPage() {
         </Dialog>
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-xl bg-card gold-border">
+      {/* Mobile: card list */}
+      <div className="mt-6 space-y-3 md:hidden">
+        {users.map((u: any) => (
+          <div key={u.id} className="rounded-xl bg-card gold-border p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="font-medium truncate">{u.full_name || "—"}</div>
+                <div className="text-xs text-muted-foreground truncate">{u.email}</div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span className="rounded-md bg-secondary px-2 py-0.5 text-[10px] uppercase tracking-wider text-gold">{u.role || "none"}</span>
+                  {u.organization_name && (
+                    <span className="text-xs text-muted-foreground truncate">{u.organization_name}</span>
+                  )}
+                </div>
+              </div>
+              {u.id !== me?.id && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button size="icon" variant="ghost" disabled={removeM.isPending}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete {u.full_name || u.email}?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This permanently removes the account, role, and all property assignments. This cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => removeM.mutate(u.id)}>Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
+          </div>
+        ))}
+        {users.length === 0 && (
+          <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+            No users yet.
+          </div>
+        )}
+      </div>
+
+      {/* Desktop: table */}
+      <div className="mt-6 hidden overflow-hidden rounded-xl bg-card gold-border md:block">
         <table className="w-full text-sm">
           <thead><tr className="text-left text-xs uppercase tracking-wider text-muted-foreground">
             <th className="px-4 py-3">Name</th><th className="px-4 py-3">Email</th><th className="px-4 py-3">Role</th><th className="px-4 py-3">Org</th><th className="px-4 py-3" />
