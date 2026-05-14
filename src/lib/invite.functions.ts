@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { inviteUserAdmin } from "./admin-invite.server";
+import { inviteUserAdmin, inviteClientForProperty } from "./admin-invite.server";
 
 async function ensureAdmin(supabase: any, userId: string) {
   const { data } = await supabase
@@ -21,4 +21,16 @@ export const inviteUser = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await ensureAdmin(context.supabase, context.userId);
     return inviteUserAdmin(data);
+  });
+
+export const inviteClientToProperty = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    property_id: z.string().uuid(),
+    email: z.string().email().toLowerCase().max(255),
+    full_name: z.string().trim().min(1).max(120),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    await ensureAdmin(context.supabase, context.userId);
+    return inviteClientForProperty(data);
   });
