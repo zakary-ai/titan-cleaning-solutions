@@ -21,10 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<AppRole | null>(null);
   const [profile, setProfile] = useState<AuthCtx["profile"]>(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    console.info("auth-state", { loading, hasSession: Boolean(session), role });
-  }, [loading, session, role]);
+  const [sessionResolved, setSessionResolved] = useState(false);
 
   const loadRoleAndProfile = async (uid: string) => {
     const [{ data: roleRow, error: roleError }, { data: profileRow, error: profileError }] = await Promise.all([
@@ -41,14 +38,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let active = true;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
-      if (active) setSession(s);
+      if (active) {
+        setSession(s);
+        setSessionResolved(true);
+      }
     });
 
     supabase.auth.getSession().then(({ data }) => {
-      if (active) setSession(data.session);
+      if (active) {
+        setSession(data.session);
+        setSessionResolved(true);
+      }
     }).catch((error) => {
       console.error(error);
-      if (active) setLoading(false);
+      if (active) {
+        setSessionResolved(true);
+        setLoading(false);
+      }
     });
 
     return () => { active = false; subscription.unsubscribe(); };
@@ -56,6 +62,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true;
+
+    if (!sessionResolved) return () => { active = false; };
 
     if (!session?.user) {
       setRole(null);
@@ -78,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
     return () => { active = false; };
-  }, [session?.user?.id]);
+  }, [sessionResolved, session?.user?.id]);
 
   const value: AuthCtx = {
     session,
