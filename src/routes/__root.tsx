@@ -105,9 +105,16 @@ function AuthInvalidator() {
   const router = useRouter();
   const qc = useQueryClient();
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       router.invalidate();
-      qc.invalidateQueries();
+      if (event === "SIGNED_OUT") {
+        // Cancel in-flight requests and drop cached data so refetches don't
+        // fire without a bearer token.
+        qc.cancelQueries();
+        qc.clear();
+      } else {
+        qc.invalidateQueries();
+      }
     });
     return () => subscription.unsubscribe();
   }, [router, qc]);
