@@ -16,7 +16,7 @@ export const inviteUser = createServerFn({ method: "POST" })
     full_name: z.string().trim().min(1).max(120),
     role: z.enum(["admin", "supervisor", "client"]),
     organization_name: z.string().trim().max(120).optional().nullable(),
-    password: z.string().min(8).max(72),
+    redirect_to: z.string().url().max(500).optional().nullable(),
   }).parse(d))
   .handler(async ({ data, context }) => {
     await ensureAdmin(context.supabase, context.userId);
