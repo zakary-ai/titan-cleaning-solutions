@@ -39,6 +39,17 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
     enabled: !!selected,
   });
 
+  // Mark thread read whenever it (re)loads
+  useEffect(() => {
+    if (!selected || !thread) return;
+    markRead({ data: { issue_id: selected } })
+      .then(() => qc.invalidateQueries({ queryKey: ["unread-issues"] }))
+      .catch(() => {});
+  }, [selected, thread, markRead, qc]);
+
+  const [showVideo, setShowVideo] = useState(false);
+  useEffect(() => { setShowVideo(false); }, [selected]);
+
   const sendReply = useMutation({
     mutationFn: async () => {
       let attachment_url: string | null = null;
