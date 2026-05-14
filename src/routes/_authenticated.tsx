@@ -1,15 +1,13 @@
-import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Navigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
-import { homeForRole } from "@/lib/role-routes";
 import { Sparkles } from "lucide-react";
 
-export const Route = createFileRoute("/")({
-  component: Index,
+export const Route = createFileRoute("/_authenticated")({
+  component: AuthenticatedLayout,
 });
 
-function Index() {
+function AuthenticatedLayout() {
   const { loading, session, role } = useAuth();
-
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -17,8 +15,7 @@ function Index() {
       </div>
     );
   }
-
   if (!session) return <Navigate to="/login" />;
   if (!role) return <Navigate to="/pending" />;
-  return <Navigate to={homeForRole(role)} />;
+  return <Outlet />;
 }

@@ -1,0 +1,107 @@
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+// Client creates an issue / comment on an upload
+export const createIssue = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    property_id: z.string().uuid(),
+    area_id: z.string().uuid().optional().nullable(),
+    upload_id: z.string().uuid().optional().nullable(),
+    title: z.string().trim().min(1).max(160),
+    initial_comment: z.string().trim().min(1).max(2000),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase.from("issues").insert({
+      ...data,
+      client_user_id: context.userId,
+      status: "open",
+    }).select("*").single();
+    if (error) throw new Error(error.message);
+    // Seed first message
+    await context.supabase.from("messages").insert({
+      issue_id: row.id, sender_id: context.userId, body: data.initial_comment,
+    });
+    return row;
+  });
+
+// List issues visible to current user (RLS filters)
+export const listIssues = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    status: z.enum(["open", "in_progress", "resolved", "all"]).default("all"),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    let q = context.supabase.from("issues").select("*").order("created_at", { ascending: false }).limit(200);
+    if (data.status !== "all") q = q.eq("status", data.status);
+    const { data: issues, error } = await q;
+    if (error) throw new Error(error.message);
+    if (!issues || issues.length === 0) return { issues: [], properties: {}, areas: {}, profiles: {} };
+    const propIds = Array.from(new Set(issues.map((i: any) => i.property_id)));
+    const areaIds = Array.from(new Set(issues.map((i: any) => i.area_id).filter(Boolean)));
+    const userIds = Array.from(new Set(issues.map((i: any) => i.client_user_id).filter(Boolean)));
+    const [{ data: properties }, { data: areas }, { data: profiles }] = await Promise.all([
+      context.supabase.from("properties").select("id,name,client_organization").in("id", propIds),
+      areaIds.length ? context.supabase.from("property_areas").select("id,area_name").in("id", areaIds) : Promise.resolve({ data: [] }),
+      userIds.length ? context.supabase.from("profiles").select("id,full_name,email,organization_name").in("id", userIds) : Promise.resolve({ data: [] }),
+    ]);
+    const toMap = (rows: any[], k = "id") => Object.fromEntries((rows ?? []).map((r) => [r[k], r]));
+    return { issues, properties: toMap(properties as any[]), areas: toMap(areas as any[]), profiles: toMap(profiles as any[]) };
+  });
+
+export const getIssueThread = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: issue } = await context.supabase.from("issues").select("*").eq("id", data.id).maybeSingle();
+    if (!issue) throw new Error("Issue not found");
+    const { data: messages } = await context.supabase
+      .from("messages").select("*").eq("issue_id", data.id).order("created_at");
+    const senderIds = Array.from(new Set((messages ?? []).map((m: any) => m.sender_id).filter(Boolean)));
+    const { data: profiles } = senderIds.length
+      ? await context.supabase.from("profiles").select("id,full_name,email").in("id", senderIds)
+      : { data: [] };
+    const { data: property } = await context.supabase
+      .from("properties").select("name").eq("id", issue.property_id).maybeSingle();
+    const { data: area } = issue.area_id
+      ? await context.supabase.from("property_areas").select("area_name").eq("id", issue.area_id).maybeSingle()
+      : { data: null };
+    const { data: upload } = issue.upload_id
+      ? await context.supabase.from("cleaning_uploads").select("*").eq("id", issue.upload_id).maybeSingle()
+      : { data: null };
+    return {
+      issue, messages: messages ?? [],
+      profiles: Object.fromEntries((profiles ?? []).map((p: any) => [p.id, p])),
+      property, area, upload,
+    };
+  });
+
+export const replyToIssue = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    issue_id: z.string().uuid(),
+    body: z.string().trim().min(1).max(2000),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("messages").insert({
+      issue_id: data.issue_id, sender_id: context.userId, body: data.body,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const setIssueStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    id: z.string().uuid(),
+    status: z.enum(["open", "in_progress", "resolved"]),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    const patch: any = { status: data.status };
+    if (data.status === "resolved") patch.resolved_at = new Date().toISOString();
+    if (data.status !== "resolved") patch.resolved_at = null;
+    const { error } = await context.supabase.from("issues").update(patch).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
