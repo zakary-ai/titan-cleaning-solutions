@@ -25,7 +25,7 @@ export function SetPasswordPrompt() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 8) return toast.error("Password must be at least 8 characters.");
+    if (password.length < 10) return toast.error("Password must be at least 10 characters.");
     if (password !== confirm) return toast.error("Passwords do not match.");
     setSubmitting(true);
     try {
