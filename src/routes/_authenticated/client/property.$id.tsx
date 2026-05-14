@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { MessagesSquare } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getPropertyReport, listServiceDates, signMediaUrl } from "@/lib/uploads.functions";
@@ -73,6 +74,7 @@ function AreaCard({ area, upload, property_id, service_date }: any) {
   const [url, setUrl] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ title: "", initial_comment: "" });
+  const [submittedIssueId, setSubmittedIssueId] = useState<string | null>(null);
 
   useEffect(() => {
     if (upload?.file_url) sign({ data: { path: upload.file_url } }).then(({ url }) => setUrl(url));
@@ -84,7 +86,13 @@ function AreaCard({ area, upload, property_id, service_date }: any) {
       property_id, area_id: area.id, upload_id: upload?.id ?? null,
       title: form.title, initial_comment: form.initial_comment,
     } }),
-    onSuccess: () => { toast.success("Comment sent"); setOpen(false); setForm({ title: "", initial_comment: "" }); qc.invalidateQueries({ queryKey: ["issues"] }); },
+    onSuccess: (row: any) => {
+      toast.success("Comment sent");
+      setOpen(false);
+      setForm({ title: "", initial_comment: "" });
+      setSubmittedIssueId(row?.id ?? "sent");
+      qc.invalidateQueries({ queryKey: ["issues"] });
+    },
     onError: (e: any) => toast.error(e.message),
   });
 
@@ -108,21 +116,29 @@ function AreaCard({ area, upload, property_id, service_date }: any) {
           <div className="mt-1 text-[10px] text-muted-foreground">{format(new Date(upload.uploaded_at), "PPp")}</div>
         )}
         {upload?.notes && <p className="mt-2 text-xs text-muted-foreground">"{upload.notes}"</p>}
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" variant="outline" className="mt-3 w-full">
-              <MessageSquarePlus className="mr-2 h-4 w-4" /> Leave a comment
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Comment on {area.area_name}</DialogTitle></DialogHeader>
-            <form onSubmit={(e) => { e.preventDefault(); m.mutate(); }} className="space-y-3">
-              <div><Label>Subject</Label><Input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Floor still looks dirty" /></div>
-              <div><Label>Comment</Label><Textarea required rows={4} value={form.initial_comment} onChange={(e) => setForm({ ...form, initial_comment: e.target.value })} /></div>
-              <Button type="submit" disabled={m.isPending} className="w-full">{m.isPending ? "Sending…" : "Send"}</Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        {submittedIssueId ? (
+          <Button asChild size="sm" variant="outline" className="mt-3 w-full">
+            <Link to="/client/issues">
+              <MessagesSquare className="mr-2 h-4 w-4" /> View your thread
+            </Link>
+          </Button>
+        ) : (
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline" className="mt-3 w-full">
+                <MessageSquarePlus className="mr-2 h-4 w-4" /> Leave a comment
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Comment on {area.area_name}</DialogTitle></DialogHeader>
+              <form onSubmit={(e) => { e.preventDefault(); m.mutate(); }} className="space-y-3">
+                <div><Label>Subject</Label><Input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Floor still looks dirty" /></div>
+                <div><Label>Comment</Label><Textarea required rows={4} value={form.initial_comment} onChange={(e) => setForm({ ...form, initial_comment: e.target.value })} /></div>
+                <Button type="submit" disabled={m.isPending} className="w-full">{m.isPending ? "Sending…" : "Send"}</Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </div>
   );
