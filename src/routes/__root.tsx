@@ -7,11 +7,9 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/use-auth";
-import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -90,25 +88,11 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function AuthInvalidator() {
-  const router = useRouter();
-  const qc = useQueryClient();
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      router.invalidate();
-      qc.invalidateQueries();
-    });
-    return () => subscription.unsubscribe();
-  }, [router, qc]);
-  return null;
-}
-
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AuthInvalidator />
         <Outlet />
         <Toaster theme="dark" />
       </AuthProvider>
