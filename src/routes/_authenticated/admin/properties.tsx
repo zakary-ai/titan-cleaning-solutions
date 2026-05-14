@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listProperties, createProperty, assignUser } from "@/lib/properties.functions";
+import { listProperties, createProperty, assignUser, unassignUserFromProperty } from "@/lib/properties.functions";
 import { inviteClientToProperty, listAssignableUsers } from "@/lib/invite.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
