@@ -22,7 +22,7 @@ function PropertiesPage() {
   const qc = useQueryClient();
   const { data: properties = [] } = useQuery({ queryKey: ["properties"], queryFn: () => list() });
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", address: "", client_organization: "", areas: "" });
+  const [form, setForm] = useState({ name: "", address: "", areas: "" });
 
   const m = useMutation({
     mutationFn: () => {
