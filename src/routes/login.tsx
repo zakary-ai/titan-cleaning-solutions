@@ -22,15 +22,36 @@ function LoginPage() {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setSubmitting(false);
+    const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
+      setSubmitting(false);
       toast.error(error.message);
       return;
     }
+
+    const userId = authData.user?.id;
+    if (!userId) {
+      setSubmitting(false);
+      toast.error("Unable to verify this account. Please try again.");
+      return;
+    }
+
     await refresh();
-    const { data } = await supabase.from("user_roles").select("role").maybeSingle();
-    navigate({ to: homeForRole((data?.role as never) ?? null) });
+    const { data: roleRow, error: roleError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    setSubmitting(false);
+    if (roleError) {
+      toast.error("Signed in, but we couldn't load your account type.");
+      return;
+    }
+
+    const accountRole = roleRow?.role as "admin" | "supervisor" | "client" | undefined;
+    toast.success(accountRole ? `Signed in as ${accountRole}.` : "Signed in.");
+    navigate({ to: homeForRole(accountRole ?? null) });
   };
 
   return (
