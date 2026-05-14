@@ -37,3 +37,18 @@ export const searchUsersByRole = createServerFn({ method: "GET" })
       .from("profiles").select("id,full_name,email,organization_name").in("id", ids);
     return profiles ?? [];
   });
+
+// Delete a user entirely (admin only)
+export const deleteUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ user_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await ensureAdmin(context.supabase, context.userId);
+    if (data.user_id === context.userId) throw new Error("You can't delete your own account.");
+    await supabaseAdmin.from("property_assignments").delete().eq("user_id", data.user_id);
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.user_id);
+    await supabaseAdmin.from("profiles").delete().eq("id", data.user_id);
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(data.user_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
