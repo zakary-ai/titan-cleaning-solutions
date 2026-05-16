@@ -124,13 +124,13 @@ export const markIssueRead = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-// Total unread messages across all issues visible to current user
+// Total unread messages across all OPEN issues visible to current user
 export const getUnreadIssueCount = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    // Issues the user can see (RLS handles visibility)
+    // Only count unread from non-resolved issues
     const { data: issues } = await context.supabase
-      .from("issues").select("id").limit(500);
+      .from("issues").select("id").neq("status", "resolved").limit(500);
     const ids = (issues ?? []).map((i: any) => i.id);
     if (ids.length === 0) return { count: 0 };
 
@@ -152,4 +152,20 @@ export const getUnreadIssueCount = createServerFn({ method: "GET" })
       if (new Date(m.created_at).getTime() > lr) count++;
     }
     return { count };
+  });
+
+// Mark every visible issue as read (used by "Mark all as read")
+export const markAllIssuesRead = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: issues } = await context.supabase
+      .from("issues").select("id").limit(500);
+    const ids = (issues ?? []).map((i: any) => i.id);
+    if (ids.length === 0) return { ok: true, count: 0 };
+    const now = new Date().toISOString();
+    const rows = ids.map((issue_id) => ({ user_id: context.userId, issue_id, last_read_at: now }));
+    const { error } = await context.supabase.from("issue_reads")
+      .upsert(rows, { onConflict: "user_id,issue_id" });
+    if (error) throw new Error(error.message);
+    return { ok: true, count: ids.length };
   });

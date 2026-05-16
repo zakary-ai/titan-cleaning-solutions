@@ -1,6 +1,6 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listIssues, getIssueThread, replyToIssue, setIssueStatus, markIssueRead } from "@/lib/issues.functions";
+import { listIssues, getIssueThread, replyToIssue, setIssueStatus, markIssueRead, markAllIssuesRead } from "@/lib/issues.functions";
 import { signMediaUrl } from "@/lib/uploads.functions";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Paperclip, Loader2, ArrowLeft, X, Film } from "lucide-react";
+import { Paperclip, Loader2, ArrowLeft, X, Film, CheckCheck } from "lucide-react";
 
 type FilterStatus = "open" | "resolved" | "all";
 type IssueStatus = "open" | "resolved";
@@ -20,6 +20,7 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
   const reply = useServerFn(replyToIssue);
   const setStatus = useServerFn(setIssueStatus);
   const markRead = useServerFn(markIssueRead);
+  const markAllRead = useServerFn(markAllIssuesRead);
   const qc = useQueryClient();
 
   const [filter, setFilter] = useState<FilterStatus>("open");
@@ -80,16 +81,32 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
 
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <h1 className="font-display text-3xl">Issues</h1>
-        <Select value={filter} onValueChange={(v: FilterStatus) => setFilter(v)}>
-          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="open">Open</SelectItem>
-            <SelectItem value="resolved">Resolved</SelectItem>
-            <SelectItem value="all">All</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() =>
+              markAllRead()
+                .then(() => {
+                  toast.success("All marked as read");
+                  qc.invalidateQueries({ queryKey: ["unread-issues"] });
+                })
+                .catch((e: any) => toast.error(e.message))
+            }
+          >
+            <CheckCheck className="mr-2 h-4 w-4" /> Mark all read
+          </Button>
+          <Select value={filter} onValueChange={(v: FilterStatus) => setFilter(v)}>
+            <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="open">Open</SelectItem>
+              <SelectItem value="resolved">Resolved</SelectItem>
+              <SelectItem value="all">All</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="mt-4 grid min-h-0 flex-1 gap-4 md:grid-cols-[320px_1fr]">
@@ -142,7 +159,8 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
                     value={thread.issue.status === "resolved" ? "resolved" : "open"}
                     onValueChange={(v: IssueStatus) => setStatus({ data: { id: thread.issue.id, status: v } })
                       .then(() => qc.invalidateQueries({ queryKey: ["issues"] }))
-                      .then(() => qc.invalidateQueries({ queryKey: ["issue", selected] }))}
+                      .then(() => qc.invalidateQueries({ queryKey: ["issue", selected] }))
+                      .then(() => qc.invalidateQueries({ queryKey: ["unread-issues"] }))}
                   >
                     <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
                     <SelectContent>
