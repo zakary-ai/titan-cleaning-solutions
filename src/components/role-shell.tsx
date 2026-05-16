@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getUnreadIssueCount } from "@/lib/issues.functions";
+import { useMessageNotifications } from "@/hooks/use-message-notifications";
 
 export type NavItem = {
   to: string;
@@ -31,6 +32,8 @@ export function RoleShell({ items, brandSubtitle, children }: { items: NavItem[]
     staleTime: 15_000,
   });
   const unreadCount = unread?.count ?? 0;
+  const issuesItem = items.find((it) => it.showUnread);
+  useMessageNotifications(unreadCount, issuesItem?.to ?? "/");
 
   const renderBadge = (variant: "sidebar" | "tab") => {
     if (unreadCount <= 0) return null;
@@ -83,7 +86,10 @@ export function RoleShell({ items, brandSubtitle, children }: { items: NavItem[]
       </aside>
 
       {/* Mobile header */}
-      <header className="flex items-center justify-between border-b border-border bg-sidebar px-4 py-3 md:hidden">
+      <header
+        className="flex items-center justify-between border-b border-border bg-sidebar px-4 py-3 md:hidden"
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)" }}
+      >
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-gold" />
           <span className="font-display text-base">Titan</span>
