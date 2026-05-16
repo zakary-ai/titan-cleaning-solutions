@@ -215,6 +215,8 @@ export type Database = {
           address: string | null
           client_organization: string | null
           created_at: string
+          daily_report_time: string
+          daily_report_timezone: string
           id: string
           name: string
         }
@@ -223,6 +225,8 @@ export type Database = {
           address?: string | null
           client_organization?: string | null
           created_at?: string
+          daily_report_time?: string
+          daily_report_timezone?: string
           id?: string
           name: string
         }
@@ -231,6 +235,8 @@ export type Database = {
           address?: string | null
           client_organization?: string | null
           created_at?: string
+          daily_report_time?: string
+          daily_report_timezone?: string
           id?: string
           name?: string
         }

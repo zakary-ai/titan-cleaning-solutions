@@ -1,14 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listProperties, createProperty, assignUser, unassignUserFromProperty } from "@/lib/properties.functions";
+import { listProperties, createProperty, updateProperty, assignUser, unassignUserFromProperty } from "@/lib/properties.functions";
 import { inviteClientToProperty, listAssignableUsers } from "@/lib/invite.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, MapPin, UserPlus, Users, Shield, ShieldPlus } from "lucide-react";
+import { Plus, MapPin, UserPlus, Users, Shield, ShieldPlus, Clock } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -105,6 +105,21 @@ function PropertiesPage() {
 }
 
 function PropertyCard({ property: p }: { property: any }) {
+  const update = useServerFn(updateProperty);
+  const qc = useQueryClient();
+  const initial = (p.daily_report_time ?? "08:00:00").slice(0, 5);
+  const [time, setTime] = useState(initial);
+  const tz = p.daily_report_timezone ?? "America/New_York";
+  const save = useMutation({
+    mutationFn: (value: string) =>
+      update({ data: { id: p.id, daily_report_time: `${value}:00` } }),
+    onSuccess: () => {
+      toast.success("Daily report time updated");
+      qc.invalidateQueries({ queryKey: ["properties"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   return (
     <div className="rounded-xl bg-card p-5 gold-border transition hover:gold-glow">
       <Link to="/admin/properties/$id" params={{ id: p.id }} className="block">
@@ -116,6 +131,30 @@ function PropertyCard({ property: p }: { property: any }) {
           <MapPin className="h-3 w-3" /> {p.address || "—"}
         </div>
       </Link>
+
+      <div className="mt-4 rounded-lg border border-border p-3">
+        <Label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Clock className="h-3.5 w-3.5" /> Daily report send time
+        </Label>
+        <div className="mt-2 flex items-center gap-2">
+          <Input
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="h-9 w-32"
+          />
+          <span className="text-xs text-muted-foreground">{tz === "America/New_York" ? "EST" : tz}</span>
+          <Button
+            size="sm"
+            variant="outline"
+            className="ml-auto"
+            disabled={save.isPending || `${time}:00` === (p.daily_report_time ?? "08:00:00")}
+            onClick={() => save.mutate(time)}
+          >
+            {save.isPending ? "Saving…" : "Save"}
+          </Button>
+        </div>
+      </div>
 
       <div className="mt-4 grid grid-cols-2 gap-2">
         <InviteDialog propertyId={p.id} propertyName={p.name} role="client"
