@@ -55,6 +55,8 @@ export const updateProperty = createServerFn({ method: "POST" })
     address: z.string().trim().max(255).nullable().optional(),
     client_organization: z.string().trim().max(120).nullable().optional(),
     active: z.boolean().optional(),
+    daily_report_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/).optional(),
+    daily_report_timezone: z.string().trim().min(1).max(64).optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
     await ensureAdmin(context.supabase, context.userId);
