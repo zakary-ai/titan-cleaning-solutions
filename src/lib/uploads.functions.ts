@@ -160,7 +160,8 @@ export const getPropertyReport = createServerFn({ method: "GET" })
       serviceDate = allowed ?? todayLocal;
     }
 
-    const showUploads = serviceDate < todayLocal || (serviceDate === todayLocal && released);
+    const sd: string = serviceDate;
+    const showUploads = sd < todayLocal || (sd === todayLocal && released);
     const [{ data: areas }, { data: uploads }] = await Promise.all([
       context.supabase.from("property_areas").select("*")
         .eq("property_id", data.property_id).eq("active", true).order("display_order"),
