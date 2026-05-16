@@ -159,7 +159,8 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
                     value={thread.issue.status === "resolved" ? "resolved" : "open"}
                     onValueChange={(v: IssueStatus) => setStatus({ data: { id: thread.issue.id, status: v } })
                       .then(() => qc.invalidateQueries({ queryKey: ["issues"] }))
-                      .then(() => qc.invalidateQueries({ queryKey: ["issue", selected] }))}
+                      .then(() => qc.invalidateQueries({ queryKey: ["issue", selected] }))
+                      .then(() => qc.invalidateQueries({ queryKey: ["unread-issues"] }))}
                   >
                     <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
                     <SelectContent>
