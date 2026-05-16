@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Paperclip, Loader2, ArrowLeft, X, Film } from "lucide-react";
+import { Paperclip, Loader2, ArrowLeft, X, Film, CheckCheck } from "lucide-react";
 
 type FilterStatus = "open" | "resolved" | "all";
 type IssueStatus = "open" | "resolved";
