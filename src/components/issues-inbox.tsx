@@ -81,16 +81,32 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
 
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <h1 className="font-display text-3xl">Issues</h1>
-        <Select value={filter} onValueChange={(v: FilterStatus) => setFilter(v)}>
-          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="open">Open</SelectItem>
-            <SelectItem value="resolved">Resolved</SelectItem>
-            <SelectItem value="all">All</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() =>
+              markAllRead()
+                .then(() => {
+                  toast.success("All marked as read");
+                  qc.invalidateQueries({ queryKey: ["unread-issues"] });
+                })
+                .catch((e: any) => toast.error(e.message))
+            }
+          >
+            <CheckCheck className="mr-2 h-4 w-4" /> Mark all read
+          </Button>
+          <Select value={filter} onValueChange={(v: FilterStatus) => setFilter(v)}>
+            <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="open">Open</SelectItem>
+              <SelectItem value="resolved">Resolved</SelectItem>
+              <SelectItem value="all">All</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="mt-4 grid min-h-0 flex-1 gap-4 md:grid-cols-[320px_1fr]">
