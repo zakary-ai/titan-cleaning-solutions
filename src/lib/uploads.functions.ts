@@ -160,7 +160,7 @@ export const getPropertyReport = createServerFn({ method: "GET" })
       serviceDate = allowed ?? todayLocal;
     }
 
-    const sd: string = serviceDate;
+    const sd: string = serviceDate ?? todayLocal;
     const showUploads = sd < todayLocal || (sd === todayLocal && released);
     const [{ data: areas }, { data: uploads }] = await Promise.all([
       context.supabase.from("property_areas").select("*")
