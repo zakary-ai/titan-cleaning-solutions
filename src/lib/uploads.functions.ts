@@ -167,11 +167,11 @@ export const getPropertyReport = createServerFn({ method: "GET" })
         .eq("property_id", data.property_id).eq("active", true).order("display_order"),
       showUploads
         ? context.supabase.from("cleaning_uploads").select("*")
-            .eq("property_id", data.property_id).eq("service_date", serviceDate)
+            .eq("property_id", data.property_id).eq("service_date", sd)
             .order("uploaded_at", { ascending: false })
         : Promise.resolve({ data: [] as any[] }),
     ]);
-    return { property, areas: areas ?? [], uploads: uploads ?? [], service_date: serviceDate, pending_release: !showUploads };
+    return { property, areas: areas ?? [], uploads: uploads ?? [], service_date: sd, pending_release: !showUploads };
   });
 
 // Available service dates for a property (hides today until release time)
