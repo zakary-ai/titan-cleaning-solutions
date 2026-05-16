@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getUnreadIssueCount } from "@/lib/issues.functions";
+import { useMessageNotifications } from "@/hooks/use-message-notifications";
 
 export type NavItem = {
   to: string;
@@ -31,6 +32,8 @@ export function RoleShell({ items, brandSubtitle, children }: { items: NavItem[]
     staleTime: 15_000,
   });
   const unreadCount = unread?.count ?? 0;
+  const issuesItem = items.find((it) => it.showUnread);
+  useMessageNotifications(unreadCount, issuesItem?.to ?? "/");
 
   const renderBadge = (variant: "sidebar" | "tab") => {
     if (unreadCount <= 0) return null;
