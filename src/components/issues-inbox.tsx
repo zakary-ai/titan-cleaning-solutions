@@ -1,6 +1,6 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listIssues, getIssueThread, replyToIssue, setIssueStatus, markIssueRead } from "@/lib/issues.functions";
+import { listIssues, getIssueThread, replyToIssue, setIssueStatus, markIssueRead, markAllIssuesRead } from "@/lib/issues.functions";
 import { signMediaUrl } from "@/lib/uploads.functions";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
