@@ -20,6 +20,7 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
   const reply = useServerFn(replyToIssue);
   const setStatus = useServerFn(setIssueStatus);
   const markRead = useServerFn(markIssueRead);
+  const markAllRead = useServerFn(markAllIssuesRead);
   const qc = useQueryClient();
 
   const [filter, setFilter] = useState<FilterStatus>("open");
