@@ -145,6 +145,21 @@ function isServiceDateReleased(property: any, serviceDate: string): boolean {
   return false;
 }
 
+// Returns true if caller is admin or an assigned supervisor for the property.
+async function callerBypassesRelease(supabase: any, userId: string, propertyId: string): Promise<boolean> {
+  const { data: roles } = await supabase
+    .from("user_roles").select("role").eq("user_id", userId);
+  const roleSet = new Set((roles ?? []).map((r: any) => r.role));
+  if (roleSet.has("admin")) return true;
+  if (roleSet.has("supervisor")) {
+    const { data: a } = await supabase
+      .from("property_assignments").select("id")
+      .eq("user_id", userId).eq("property_id", propertyId).maybeSingle();
+    if (a) return true;
+  }
+  return false;
+}
+
 // Client / shared: get latest report for a property by date (defaults to most recent released)
 export const getPropertyReport = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -158,23 +173,23 @@ export const getPropertyReport = createServerFn({ method: "GET" })
 
     const tz = property?.daily_report_timezone || "America/New_York";
     const { date: todayLocal } = nowInTz(tz);
-    const released = isReleased(property);
+    const bypass = await callerBypassesRelease(context.supabase, context.userId, data.property_id);
+    const canSee = (sd: string) => bypass || isServiceDateReleased(property, sd);
 
     let serviceDate = data.service_date;
     if (!serviceDate) {
-      // Pick most recent service_date the client is allowed to see
       const { data: rows } = await context.supabase
         .from("cleaning_uploads").select("service_date")
         .eq("property_id", data.property_id)
-        .order("service_date", { ascending: false }).limit(30);
+        .order("service_date", { ascending: false }).limit(60);
       const allowed = (rows ?? [])
         .map((r: any) => r.service_date)
-        .find((d: string) => d < todayLocal || (d === todayLocal && released));
+        .find((d: string) => canSee(d));
       serviceDate = allowed ?? todayLocal;
     }
 
     const sd: string = serviceDate ?? todayLocal;
-    const showUploads = sd < todayLocal || (sd === todayLocal && released);
+    const showUploads = canSee(sd);
     const [{ data: areas }, { data: uploads }] = await Promise.all([
       context.supabase.from("property_areas").select("*")
         .eq("property_id", data.property_id).eq("active", true).order("display_order"),
@@ -187,24 +202,23 @@ export const getPropertyReport = createServerFn({ method: "GET" })
     return { property, areas: areas ?? [], uploads: uploads ?? [], service_date: sd, pending_release: !showUploads };
   });
 
-// Available service dates for a property (hides today until release time)
+// Available service dates for a property
 export const listServiceDates = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ property_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const [{ data: property }, { data: rows }] = await Promise.all([
       context.supabase.from("properties")
-        .select("daily_report_time,daily_report_timezone").eq("id", data.property_id).maybeSingle(),
+        .select("daily_report_time,daily_report_timezone,instant_client_release")
+        .eq("id", data.property_id).maybeSingle(),
       context.supabase.from("cleaning_uploads").select("service_date")
         .eq("property_id", data.property_id)
         .order("service_date", { ascending: false }).limit(180),
     ]);
-    const tz = property?.daily_report_timezone || "America/New_York";
-    const { date: todayLocal } = nowInTz(tz);
-    const released = isReleased(property);
+    const bypass = await callerBypassesRelease(context.supabase, context.userId, data.property_id);
     const set = new Set<string>();
     (rows ?? []).forEach((r: any) => {
-      if (r.service_date < todayLocal || (r.service_date === todayLocal && released)) {
+      if (bypass || isServiceDateReleased(property, r.service_date)) {
         set.add(r.service_date);
       }
     });
