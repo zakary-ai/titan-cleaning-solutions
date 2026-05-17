@@ -218,6 +218,7 @@ export type Database = {
           daily_report_time: string
           daily_report_timezone: string
           id: string
+          instant_client_release: boolean
           name: string
         }
         Insert: {
@@ -228,6 +229,7 @@ export type Database = {
           daily_report_time?: string
           daily_report_timezone?: string
           id?: string
+          instant_client_release?: boolean
           name: string
         }
         Update: {
@@ -238,6 +240,7 @@ export type Database = {
           daily_report_time?: string
           daily_report_timezone?: string
           id?: string
+          instant_client_release?: boolean
           name?: string
         }
         Relationships: []
