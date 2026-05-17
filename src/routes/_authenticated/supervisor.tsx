@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, Navigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { RoleShell } from "@/components/role-shell";
-import { Building2, MessageSquare } from "lucide-react";
+import { Building2, CalendarDays, MessageSquare } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/supervisor")({
   component: SupervisorLayout,
