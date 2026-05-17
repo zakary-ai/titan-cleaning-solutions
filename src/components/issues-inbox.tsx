@@ -82,7 +82,7 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col">
       <div className="flex items-center justify-between gap-2">
-        <h1 className="font-display text-3xl">Issues</h1>
+        <h1 className="font-display text-3xl">Comments</h1>
         <div className="flex items-center gap-2">
           <Button
             size="sm"
@@ -128,7 +128,7 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
                 </button>
               );
             })}
-            {(data?.issues ?? []).length === 0 && <p className="text-sm text-muted-foreground">No issues.</p>}
+            {(data?.issues ?? []).length === 0 && <p className="text-sm text-muted-foreground">No comments.</p>}
           </div>
         </div>
 
@@ -136,7 +136,7 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
         <div className={`flex min-h-0 flex-col rounded-xl bg-card gold-border ${!selected ? "hidden md:flex" : ""}`}>
           {!thread && (
             <div className="flex h-full items-center justify-center p-5">
-              <p className="text-sm text-muted-foreground">Select an issue to view the thread.</p>
+              <p className="text-sm text-muted-foreground">Select a comment to view the thread.</p>
             </div>
           )}
           {thread && (

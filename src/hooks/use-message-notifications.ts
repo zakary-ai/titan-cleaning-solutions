@@ -35,13 +35,13 @@ export function useMessageNotifications(unreadCount: number, issuesPath: string)
       const onIssues = path.startsWith(issuesPath);
       if (!onIssues) {
         toast(`${delta} new message${delta > 1 ? "s" : ""}`, {
-          description: "Tap to open the Issues inbox",
+          description: "Tap to open the Comments inbox",
           action: { label: "View", onClick: () => navigate({ to: issuesPath }) },
         });
         if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted" && document.visibilityState !== "visible") {
           try {
             const n = new Notification("New message", {
-              body: `${delta} new message${delta > 1 ? "s" : ""} in your Issues inbox`,
+              body: `${delta} new message${delta > 1 ? "s" : ""} in your Comments inbox`,
               icon: "/icon-512.png",
               tag: "titan-unread-issues",
             });

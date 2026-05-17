@@ -35,7 +35,7 @@ function AdminOverview() {
       <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard icon={CheckCircle2} label="Properties completed today" value={data?.propertiesCompletedToday ?? "—"} tone="success" />
         <StatCard icon={AlertTriangle} label="Properties missing today" value={data?.propertiesMissingToday ?? "—"} tone="danger" />
-        <StatCard icon={MessageSquare} label="Open issues" value={data?.openIssues ?? "—"} />
+        <StatCard icon={MessageSquare} label="Open comments" value={data?.openIssues ?? "—"} />
         <StatCard icon={MessagesSquare} label="Comments this week" value={data?.commentsThisWeek ?? "—"} />
       </div>
     </div>
