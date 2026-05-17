@@ -1,12 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getNightlyChecklist, recordUpload, submitNightlyReport, signMediaUrl, updateUploadNotes } from "@/lib/uploads.functions";
+import { getNightlyChecklist, recordUpload, submitNightlyReport, signMediaUrl, updateUploadNotes, listServiceDates } from "@/lib/uploads.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { ClientReport } from "@/components/client-report";
 import { ArrowLeft, Camera, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/supervisor/property/$id")({
@@ -64,7 +68,58 @@ function NightlyChecklist() {
           );
         })}
       </div>
+
+      <PropertyHistory property_id={id} today={today} />
     </div>
+  );
+}
+
+function PropertyHistory({ property_id, today }: { property_id: string; today: string }) {
+  const datesFn = useServerFn(listServiceDates);
+  const { data: dates = [] } = useQuery({
+    queryKey: ["service-dates", property_id],
+    queryFn: () => datesFn({ data: { property_id } }),
+  });
+  const pastDates = useMemo(
+    () => (dates as string[]).filter((d) => d !== today),
+    [dates, today],
+  );
+  const dateSet = useMemo(() => new Set(pastDates), [pastDates]);
+  const reportDays = useMemo(
+    () => pastDates.map((d) => new Date(d + "T00:00:00")),
+    [pastDates],
+  );
+  const [selected, setSelected] = useState<Date | undefined>();
+  const selectedStr = selected ? format(selected, "yyyy-MM-dd") : undefined;
+  const hasReport = selectedStr ? dateSet.has(selectedStr) : false;
+
+  return (
+    <section className="mt-8 rounded-2xl bg-card p-4 gold-border">
+      <h2 className="font-display text-lg">History</h2>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Past submissions for this property (yours and other supervisors').
+      </p>
+      <div className="mt-3 flex justify-center">
+        <Calendar
+          mode="single"
+          selected={selected}
+          onSelect={setSelected}
+          modifiers={{ hasReport: reportDays }}
+          modifiersClassNames={{ hasReport: "bg-gold/15 text-gold font-semibold rounded-md" }}
+          disabled={(date) => !dateSet.has(format(date, "yyyy-MM-dd"))}
+          className={cn("p-3 pointer-events-auto")}
+        />
+      </div>
+      {selectedStr && hasReport ? (
+        <div className="mt-4">
+          <ClientReport property_id={property_id} service_date={selectedStr} />
+        </div>
+      ) : selectedStr ? (
+        <p className="mt-3 text-sm text-muted-foreground">No report on {format(selected!, "PPP")}.</p>
+      ) : (
+        <p className="mt-3 text-xs text-muted-foreground">Select a highlighted day to view its report.</p>
+      )}
+    </section>
   );
 }
 
