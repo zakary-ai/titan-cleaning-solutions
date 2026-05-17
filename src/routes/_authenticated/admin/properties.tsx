@@ -176,6 +176,36 @@ function PropertyCard({ property: p }: { property: any }) {
   );
 }
 
+function InstantReleaseToggle({ property: p }: { property: any }) {
+  const update = useServerFn(updateProperty);
+  const qc = useQueryClient();
+  const m = useMutation({
+    mutationFn: (value: boolean) => update({ data: { id: p.id, instant_client_release: value } }),
+    onSuccess: () => {
+      toast.success("Release setting updated");
+      qc.invalidateQueries({ queryKey: ["properties"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+  return (
+    <div className="mt-3 flex items-start justify-between gap-3 rounded-lg border border-border p-3">
+      <div className="min-w-0">
+        <Label className="flex items-center gap-1.5 text-xs">
+          <Zap className="h-3.5 w-3.5" /> Instant client release
+        </Label>
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          When on, uploads appear in the client account immediately. When off, they appear the next day at the send time above.
+        </p>
+      </div>
+      <Switch
+        checked={!!p.instant_client_release}
+        disabled={m.isPending}
+        onCheckedChange={(v) => m.mutate(v)}
+      />
+    </div>
+  );
+}
+
 function InviteDialog({ propertyId, propertyName, role, trigger }: {
   propertyId: string; propertyName: string; role: "client" | "supervisor"; trigger: React.ReactNode;
 }) {
