@@ -13,6 +13,7 @@ function SupervisorLayout() {
   return (
     <RoleShell brandSubtitle="Supervisor" items={[
       { to: "/supervisor", label: "Properties", icon: Building2 },
+      { to: "/supervisor/history", label: "History", icon: CalendarDays },
       { to: "/supervisor/issues", label: "Issues", icon: MessageSquare, showUnread: true },
     ]}>
       <Outlet />

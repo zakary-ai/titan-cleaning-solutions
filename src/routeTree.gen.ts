@@ -22,6 +22,7 @@ import { Route as AuthenticatedSupervisorIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedClientIndexRouteImport } from './routes/_authenticated/client/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedSupervisorIssuesRouteImport } from './routes/_authenticated/supervisor/issues'
+import { Route as AuthenticatedSupervisorHistoryRouteImport } from './routes/_authenticated/supervisor/history'
 import { Route as AuthenticatedClientIssuesRouteImport } from './routes/_authenticated/client/issues'
 import { Route as AuthenticatedClientHistoryRouteImport } from './routes/_authenticated/client/history'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
@@ -100,6 +101,12 @@ const AuthenticatedSupervisorIssuesRoute =
     path: '/issues',
     getParentRoute: () => AuthenticatedSupervisorRoute,
   } as any)
+const AuthenticatedSupervisorHistoryRoute =
+  AuthenticatedSupervisorHistoryRouteImport.update({
+    id: '/history',
+    path: '/history',
+    getParentRoute: () => AuthenticatedSupervisorRoute,
+  } as any)
 const AuthenticatedClientIssuesRoute =
   AuthenticatedClientIssuesRouteImport.update({
     id: '/issues',
@@ -175,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/client/history': typeof AuthenticatedClientHistoryRoute
   '/client/issues': typeof AuthenticatedClientIssuesRoute
+  '/supervisor/history': typeof AuthenticatedSupervisorHistoryRoute
   '/supervisor/issues': typeof AuthenticatedSupervisorIssuesRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/client/': typeof AuthenticatedClientIndexRoute
@@ -196,6 +204,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/client/history': typeof AuthenticatedClientHistoryRoute
   '/client/issues': typeof AuthenticatedClientIssuesRoute
+  '/supervisor/history': typeof AuthenticatedSupervisorHistoryRoute
   '/supervisor/issues': typeof AuthenticatedSupervisorIssuesRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/client': typeof AuthenticatedClientIndexRoute
@@ -222,6 +231,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/client/history': typeof AuthenticatedClientHistoryRoute
   '/_authenticated/client/issues': typeof AuthenticatedClientIssuesRoute
+  '/_authenticated/supervisor/history': typeof AuthenticatedSupervisorHistoryRoute
   '/_authenticated/supervisor/issues': typeof AuthenticatedSupervisorIssuesRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/client/': typeof AuthenticatedClientIndexRoute
@@ -248,6 +258,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/client/history'
     | '/client/issues'
+    | '/supervisor/history'
     | '/supervisor/issues'
     | '/admin/'
     | '/client/'
@@ -269,6 +280,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/client/history'
     | '/client/issues'
+    | '/supervisor/history'
     | '/supervisor/issues'
     | '/admin'
     | '/client'
@@ -294,6 +306,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/users'
     | '/_authenticated/client/history'
     | '/_authenticated/client/issues'
+    | '/_authenticated/supervisor/history'
     | '/_authenticated/supervisor/issues'
     | '/_authenticated/admin/'
     | '/_authenticated/client/'
@@ -404,6 +417,13 @@ declare module '@tanstack/react-router' {
       path: '/issues'
       fullPath: '/supervisor/issues'
       preLoaderRoute: typeof AuthenticatedSupervisorIssuesRouteImport
+      parentRoute: typeof AuthenticatedSupervisorRoute
+    }
+    '/_authenticated/supervisor/history': {
+      id: '/_authenticated/supervisor/history'
+      path: '/history'
+      fullPath: '/supervisor/history'
+      preLoaderRoute: typeof AuthenticatedSupervisorHistoryRouteImport
       parentRoute: typeof AuthenticatedSupervisorRoute
     }
     '/_authenticated/client/issues': {
@@ -533,6 +553,7 @@ const AuthenticatedClientRouteWithChildren =
   AuthenticatedClientRoute._addFileChildren(AuthenticatedClientRouteChildren)
 
 interface AuthenticatedSupervisorRouteChildren {
+  AuthenticatedSupervisorHistoryRoute: typeof AuthenticatedSupervisorHistoryRoute
   AuthenticatedSupervisorIssuesRoute: typeof AuthenticatedSupervisorIssuesRoute
   AuthenticatedSupervisorIndexRoute: typeof AuthenticatedSupervisorIndexRoute
   AuthenticatedSupervisorPropertyIdRoute: typeof AuthenticatedSupervisorPropertyIdRoute
@@ -540,6 +561,7 @@ interface AuthenticatedSupervisorRouteChildren {
 
 const AuthenticatedSupervisorRouteChildren: AuthenticatedSupervisorRouteChildren =
   {
+    AuthenticatedSupervisorHistoryRoute: AuthenticatedSupervisorHistoryRoute,
     AuthenticatedSupervisorIssuesRoute: AuthenticatedSupervisorIssuesRoute,
     AuthenticatedSupervisorIndexRoute: AuthenticatedSupervisorIndexRoute,
     AuthenticatedSupervisorPropertyIdRoute:
