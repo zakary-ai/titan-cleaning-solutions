@@ -1,12 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getNightlyChecklist, recordUpload, submitNightlyReport, signMediaUrl, updateUploadNotes } from "@/lib/uploads.functions";
+import { getNightlyChecklist, recordUpload, submitNightlyReport, signMediaUrl, updateUploadNotes, listServiceDates } from "@/lib/uploads.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { ClientReport } from "@/components/client-report";
 import { ArrowLeft, Camera, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/supervisor/property/$id")({
