@@ -123,13 +123,26 @@ function nowInTz(tz: string): { date: string; time: string } {
   }
 }
 
-// Has today's report been "released" yet for this property?
-function isReleased(property: any): boolean {
+// Add `days` to a YYYY-MM-DD string and return the same shape.
+function addDays(dateStr: string, days: number): string {
+  const d = new Date(dateStr + "T00:00:00Z");
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+// Is a given service_date currently visible to clients for this property?
+// Default: visible the day AFTER the service date, at the property's daily_report_time.
+// If `instant_client_release` is on, visible as soon as it's uploaded.
+function isServiceDateReleased(property: any, serviceDate: string): boolean {
   if (!property) return true;
+  if (property.instant_client_release) return true;
   const tz = property.daily_report_timezone || "America/New_York";
   const releaseTime = (property.daily_report_time || "08:00:00").slice(0, 8);
-  const { time } = nowInTz(tz);
-  return time >= releaseTime;
+  const { date: todayLocal, time } = nowInTz(tz);
+  const releaseDay = addDays(serviceDate, 1);
+  if (todayLocal > releaseDay) return true;
+  if (todayLocal === releaseDay && time >= releaseTime) return true;
+  return false;
 }
 
 // Client / shared: get latest report for a property by date (defaults to most recent released)
