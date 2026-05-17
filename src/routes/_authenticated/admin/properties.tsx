@@ -155,7 +155,12 @@ function PropertyCard({ property: p }: { property: any }) {
             {save.isPending ? "Saving…" : "Save"}
           </Button>
         </div>
+        <p className="mt-2 text-[11px] text-muted-foreground">
+          By default, a day's uploads appear in the client account the next day at this time.
+        </p>
       </div>
+
+      <InstantReleaseToggle property={p} />
 
       <div className="mt-4 grid grid-cols-2 gap-2">
         <InviteDialog propertyId={p.id} propertyName={p.name} role="client"
