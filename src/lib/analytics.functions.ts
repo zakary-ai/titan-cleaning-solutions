@@ -21,7 +21,7 @@ export const getAdminOverview = createServerFn({ method: "GET" })
       { count: openIssues },
       { count: commentsThisWeek },
     ] = await Promise.all([
-      context.supabase.from("properties").select("id").eq("active", true),
+      context.supabase.from("properties").select("id,name").eq("active", true).order("name"),
       context.supabase.from("property_areas").select("id,property_id")
         .eq("active", true).eq("required_upload", true),
       context.supabase.from("cleaning_uploads").select("property_id,area_id,status")
@@ -31,7 +31,7 @@ export const getAdminOverview = createServerFn({ method: "GET" })
       context.supabase.from("issues").select("*", { count: "exact", head: true }).gte("created_at", weekAgo),
     ]);
 
-    const propIds = (properties ?? []).map((p: any) => p.id);
+    const props = (properties ?? []) as { id: string; name: string }[];
     const requiredByProp = new Map<string, Set<string>>();
     for (const a of requiredAreas ?? []) {
       if (!requiredByProp.has(a.property_id)) requiredByProp.set(a.property_id, new Set());
@@ -44,24 +44,27 @@ export const getAdminOverview = createServerFn({ method: "GET" })
       uploadedByProp.get(u.property_id)!.add(u.area_id);
     }
 
-    let completed = 0;
-    for (const pid of propIds) {
-      const required = requiredByProp.get(pid);
-      if (!required || required.size === 0) continue;
-      const uploaded = uploadedByProp.get(pid) ?? new Set();
-      let allDone = true;
-      for (const aid of required) if (!uploaded.has(aid)) { allDone = false; break; }
-      if (allDone) completed++;
-    }
-    const missing = Math.max(0, propIds.length - completed);
+    const propertyStatuses = props.map((p) => {
+      const required = requiredByProp.get(p.id);
+      const uploaded = uploadedByProp.get(p.id) ?? new Set();
+      const requiredCount = required?.size ?? 0;
+      let uploadedRequired = 0;
+      if (required) for (const aid of required) if (uploaded.has(aid)) uploadedRequired++;
+      const completed = requiredCount > 0 && uploadedRequired === requiredCount;
+      return { id: p.id, name: p.name, completed, requiredCount, uploadedRequired };
+    });
+    const completed = propertyStatuses.filter((p) => p.completed).length;
+    const missing = Math.max(0, props.length - completed);
 
     return {
       propertiesCompletedToday: completed,
       propertiesMissingToday: missing,
       openIssues: openIssues ?? 0,
       commentsThisWeek: commentsThisWeek ?? 0,
+      propertyStatuses,
     };
   });
+
 
 export const getAdminAnalytics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
