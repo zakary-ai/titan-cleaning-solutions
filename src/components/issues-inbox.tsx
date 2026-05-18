@@ -80,9 +80,9 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
   const canSend = (body.trim().length > 0 || !!pendingFile) && !sendReply.isPending && !uploading;
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] flex-col">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="font-display text-3xl">Comments</h1>
+    <div className="flex h-[calc(100vh-8rem)] min-w-0 flex-col overflow-x-hidden">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="font-display text-2xl md:text-3xl">Comments</h1>
         <div className="flex items-center gap-2">
           <Button
             size="sm"
@@ -96,10 +96,11 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
                 .catch((e: any) => toast.error(e.message))
             }
           >
-            <CheckCheck className="mr-2 h-4 w-4" /> Mark all read
+            <CheckCheck className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Mark all read</span>
           </Button>
           <Select value={filter} onValueChange={(v: FilterStatus) => setFilter(v)}>
-            <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-28 md:w-32"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="open">Open</SelectItem>
               <SelectItem value="resolved">Resolved</SelectItem>
