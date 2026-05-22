@@ -213,7 +213,7 @@ function SpecialProjectCard({
   const qc = useQueryClient();
   const [url, setUrl] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ title: "", initial_comment: "" });
+  const [form, setForm] = useState({ title: `Re: ${sp.caption}`, initial_comment: "" });
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
