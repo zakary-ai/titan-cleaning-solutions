@@ -174,25 +174,29 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
                 )}
               </div>
 
-              {/* Original upload the issue refers to */}
-              {thread.upload?.file_url && (
-                <div className="border-b border-border/60 px-4 py-3">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setShowVideo((v) => !v)}
-                  >
-                    <Film className="mr-2 h-4 w-4" />
-                    {showVideo ? "Hide" : "View"} {thread.upload.file_type === "image" ? "photo" : "video"} in question
-                  </Button>
-                  {showVideo && (
-                    <div className="mt-3">
-                      <MessageAttachment path={thread.upload.file_url} />
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Original upload / special project the issue refers to */}
+              {(() => {
+                const sp = (thread as any).special_project;
+                const media = thread.upload?.file_url
+                  ? { path: thread.upload.file_url, type: thread.upload.file_type }
+                  : sp?.file_url
+                    ? { path: sp.file_url, type: sp.file_type }
+                    : null;
+                if (!media) return null;
+                return (
+                  <div className="border-b border-border/60 px-4 py-3">
+                    <Button type="button" size="sm" variant="outline" onClick={() => setShowVideo((v) => !v)}>
+                      <Film className="mr-2 h-4 w-4" />
+                      {showVideo ? "Hide" : "View"} {media.type === "image" ? "photo" : "video"} in question
+                    </Button>
+                    {showVideo && (
+                      <div className="mt-3">
+                        <MessageAttachment path={media.path} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Messages — the only scrolling region */}
               <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-3">
