@@ -153,7 +153,7 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
                   <div className="min-w-0">
                     <h2 className="font-display text-xl truncate">{thread.issue.title}</h2>
                     <p className="text-xs text-muted-foreground">
-                      {thread.property?.name} · {thread.area?.area_name ?? "—"} · {format(new Date(thread.issue.created_at), "PPp")}
+                      {thread.property?.name} · {(thread as any).special_project ? `Special: ${(thread as any).special_project.caption}` : (thread.area?.area_name ?? "—")} · {format(new Date(thread.issue.created_at), "PPp")}
                     </p>
                   </div>
                 </div>
