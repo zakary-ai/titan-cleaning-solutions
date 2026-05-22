@@ -117,6 +117,8 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
             {(data?.issues ?? []).map((i: any) => {
               const p = data!.properties[i.property_id];
               const a = i.area_id ? data!.areas[i.area_id] : null;
+              const sp = i.special_project_id ? (data as any).specialProjects?.[i.special_project_id] : null;
+              const subtitle = sp ? `Special: ${sp.caption}` : (a?.area_name ?? "—");
               return (
                 <button key={i.id} onClick={() => setSelected(i.id)}
                   className={`w-full rounded-lg border p-3 text-left transition ${selected === i.id ? "border-gold bg-card" : "border-border bg-card/50 hover:bg-card"}`}>
@@ -124,7 +126,7 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
                     <span className="text-sm font-semibold truncate">{i.title}</span>
                     <span className="text-[10px] uppercase text-gold">{i.status === "resolved" ? "resolved" : "open"}</span>
                   </div>
-                  <div className="mt-1 text-xs text-muted-foreground">{p?.name} · {a?.area_name ?? "—"}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">{p?.name} · {subtitle}</div>
                   <div className="text-[10px] text-muted-foreground">{format(new Date(i.created_at), "MMM d, p")}</div>
                 </button>
               );
@@ -151,7 +153,7 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
                   <div className="min-w-0">
                     <h2 className="font-display text-xl truncate">{thread.issue.title}</h2>
                     <p className="text-xs text-muted-foreground">
-                      {thread.property?.name} · {thread.area?.area_name ?? "—"} · {format(new Date(thread.issue.created_at), "PPp")}
+                      {thread.property?.name} · {(thread as any).special_project ? `Special: ${(thread as any).special_project.caption}` : (thread.area?.area_name ?? "—")} · {format(new Date(thread.issue.created_at), "PPp")}
                     </p>
                   </div>
                 </div>
@@ -172,25 +174,29 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
                 )}
               </div>
 
-              {/* Original upload the issue refers to */}
-              {thread.upload?.file_url && (
-                <div className="border-b border-border/60 px-4 py-3">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setShowVideo((v) => !v)}
-                  >
-                    <Film className="mr-2 h-4 w-4" />
-                    {showVideo ? "Hide" : "View"} {thread.upload.file_type === "image" ? "photo" : "video"} in question
-                  </Button>
-                  {showVideo && (
-                    <div className="mt-3">
-                      <MessageAttachment path={thread.upload.file_url} />
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Original upload / special project the issue refers to */}
+              {(() => {
+                const sp = (thread as any).special_project;
+                const media = thread.upload?.file_url
+                  ? { path: thread.upload.file_url, type: thread.upload.file_type }
+                  : sp?.file_url
+                    ? { path: sp.file_url, type: sp.file_type }
+                    : null;
+                if (!media) return null;
+                return (
+                  <div className="border-b border-border/60 px-4 py-3">
+                    <Button type="button" size="sm" variant="outline" onClick={() => setShowVideo((v) => !v)}>
+                      <Film className="mr-2 h-4 w-4" />
+                      {showVideo ? "Hide" : "View"} {media.type === "image" ? "photo" : "video"} in question
+                    </Button>
+                    {showVideo && (
+                      <div className="mt-3">
+                        <MessageAttachment path={media.path} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Messages — the only scrolling region */}
               <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-3">

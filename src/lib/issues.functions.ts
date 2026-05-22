@@ -9,6 +9,7 @@ export const createIssue = createServerFn({ method: "POST" })
     property_id: z.string().uuid(),
     area_id: z.string().uuid().optional().nullable(),
     upload_id: z.string().uuid().optional().nullable(),
+    special_project_id: z.string().uuid().optional().nullable(),
     title: z.string().trim().min(1).max(160),
     initial_comment: z.string().trim().min(1).max(2000),
   }).parse(d))
@@ -19,7 +20,6 @@ export const createIssue = createServerFn({ method: "POST" })
       status: "open",
     }).select("*").single();
     if (error) throw new Error(error.message);
-    // Seed first message
     await context.supabase.from("messages").insert({
       issue_id: row.id, sender_id: context.userId, body: data.initial_comment,
     });
@@ -37,17 +37,19 @@ export const listIssues = createServerFn({ method: "GET" })
     if (data.status !== "all") q = q.eq("status", data.status);
     const { data: issues, error } = await q;
     if (error) throw new Error(error.message);
-    if (!issues || issues.length === 0) return { issues: [], properties: {}, areas: {}, profiles: {} };
+    if (!issues || issues.length === 0) return { issues: [], properties: {}, areas: {}, profiles: {}, specialProjects: {} };
     const propIds = Array.from(new Set(issues.map((i: any) => i.property_id)));
     const areaIds = Array.from(new Set(issues.map((i: any) => i.area_id).filter(Boolean)));
     const userIds = Array.from(new Set(issues.map((i: any) => i.client_user_id).filter(Boolean)));
-    const [{ data: properties }, { data: areas }, { data: profiles }] = await Promise.all([
+    const spIds = Array.from(new Set(issues.map((i: any) => i.special_project_id).filter(Boolean)));
+    const [{ data: properties }, { data: areas }, { data: profiles }, { data: specials }] = await Promise.all([
       context.supabase.from("properties").select("id,name,client_organization").in("id", propIds),
       areaIds.length ? context.supabase.from("property_areas").select("id,area_name").in("id", areaIds) : Promise.resolve({ data: [] }),
       userIds.length ? context.supabase.from("profiles").select("id,full_name,email,organization_name").in("id", userIds) : Promise.resolve({ data: [] }),
+      spIds.length ? context.supabase.from("special_projects").select("id,caption,file_url,file_type").in("id", spIds) : Promise.resolve({ data: [] }),
     ]);
     const toMap = (rows: any[], k = "id") => Object.fromEntries((rows ?? []).map((r) => [r[k], r]));
-    return { issues, properties: toMap(properties as any[]), areas: toMap(areas as any[]), profiles: toMap(profiles as any[]) };
+    return { issues, properties: toMap(properties as any[]), areas: toMap(areas as any[]), profiles: toMap(profiles as any[]), specialProjects: toMap(specials as any[]) };
   });
 
 export const getIssueThread = createServerFn({ method: "GET" })
@@ -70,10 +72,13 @@ export const getIssueThread = createServerFn({ method: "GET" })
     const { data: upload } = issue.upload_id
       ? await context.supabase.from("cleaning_uploads").select("*").eq("id", issue.upload_id).maybeSingle()
       : { data: null };
+    const { data: special_project } = issue.special_project_id
+      ? await context.supabase.from("special_projects").select("id,caption,file_url,file_type").eq("id", issue.special_project_id).maybeSingle()
+      : { data: null };
     return {
       issue, messages: messages ?? [],
       profiles: Object.fromEntries((profiles ?? []).map((p: any) => [p.id, p])),
-      property, area, upload,
+      property, area, upload, special_project,
     };
   });
 

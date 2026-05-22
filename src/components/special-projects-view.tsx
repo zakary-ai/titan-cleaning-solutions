@@ -213,7 +213,7 @@ function SpecialProjectCard({
   const qc = useQueryClient();
   const [url, setUrl] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ title: "", initial_comment: "" });
+  const [form, setForm] = useState({ title: `Re: ${sp.caption}`, initial_comment: "" });
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
@@ -234,6 +234,7 @@ function SpecialProjectCard({
   const commentMut = useMutation({
     mutationFn: () => create({ data: {
       property_id: sp.property_id,
+      special_project_id: sp.id,
       title: form.title,
       initial_comment: form.initial_comment,
     } }),
@@ -241,7 +242,7 @@ function SpecialProjectCard({
       toast.success("Comment sent");
       setOpen(false);
       setSubmitted(true);
-      setForm({ title: "", initial_comment: "" });
+      setForm({ title: `Re: ${sp.caption}`, initial_comment: "" });
       qc.invalidateQueries({ queryKey: ["issues"] });
     },
     onError: (e: any) => toast.error(e.message),
