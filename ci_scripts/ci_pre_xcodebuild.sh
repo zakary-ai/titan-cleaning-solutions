@@ -2,9 +2,14 @@
 
 set -e
 
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+
+echo "Node: $(node -v)"
+echo "npm: $(npm -v)"
+
 cd $CI_PRIMARY_REPOSITORY_PATH
 
-echo "Installing Node dependencies..."
+echo "Ensuring Node dependencies are installed..."
 npm install
 
 echo "Syncing Capacitor iOS..."
