@@ -25,15 +25,47 @@ export function ClientReport({ property_id, service_date }: { property_id: strin
   const areas = data?.areas ?? [];
   const uploads = data?.uploads ?? [];
 
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const q = query.trim().toLowerCase();
+  const filteredAreas = q
+    ? areas.filter((a: any) => a.area_name?.toLowerCase().includes(q))
+    : areas;
+
   return (
     <div>
-      {data?.service_date && (
-        <p className="text-xs uppercase tracking-[0.18em] text-gold">
-          Report for {format(new Date(data.service_date + "T00:00:00"), "EEEE, MMMM d, yyyy")}
-        </p>
+      <div className="flex items-center justify-between gap-2">
+        {data?.service_date ? (
+          <p className="text-xs uppercase tracking-[0.18em] text-gold">
+            Report for {format(new Date(data.service_date + "T00:00:00"), "EEEE, MMMM d, yyyy")}
+          </p>
+        ) : <span />}
+        <Button
+          size="icon"
+          variant="ghost"
+          aria-label="Search areas"
+          onClick={() => {
+            setSearchOpen((v) => {
+              if (v) setQuery("");
+              return !v;
+            });
+          }}
+        >
+          {searchOpen ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
+        </Button>
+      </div>
+      {searchOpen && (
+        <div className="mt-3">
+          <Input
+            autoFocus
+            placeholder="Search areas…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
       )}
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {areas.map((area: any) => {
+        {filteredAreas.map((area: any) => {
           const upload = uploads.find((u: any) => u.area_id === area.id);
           return (
             <AreaCard key={area.id} area={area} upload={upload}
@@ -42,6 +74,9 @@ export function ClientReport({ property_id, service_date }: { property_id: strin
         })}
         {areas.length === 0 && (
           <p className="col-span-full text-sm text-muted-foreground">No areas configured yet.</p>
+        )}
+        {areas.length > 0 && filteredAreas.length === 0 && (
+          <p className="col-span-full text-sm text-muted-foreground">No areas match "{query}".</p>
         )}
       </div>
     </div>
