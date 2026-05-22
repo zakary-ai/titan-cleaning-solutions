@@ -83,6 +83,9 @@ function LoginPage() {
             New users receive accounts by invitation from your administrator.
           </p>
         </form>
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          <a href="/privacy" className="underline underline-offset-4 hover:text-gold">Privacy Policy</a>
+        </p>
       </div>
     </div>
   );
