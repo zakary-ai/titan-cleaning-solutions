@@ -72,10 +72,13 @@ export const getIssueThread = createServerFn({ method: "GET" })
     const { data: upload } = issue.upload_id
       ? await context.supabase.from("cleaning_uploads").select("*").eq("id", issue.upload_id).maybeSingle()
       : { data: null };
+    const { data: special_project } = issue.special_project_id
+      ? await context.supabase.from("special_projects").select("id,caption,file_url,file_type").eq("id", issue.special_project_id).maybeSingle()
+      : { data: null };
     return {
       issue, messages: messages ?? [],
       profiles: Object.fromEntries((profiles ?? []).map((p: any) => [p.id, p])),
-      property, area, upload,
+      property, area, upload, special_project,
     };
   });
 
