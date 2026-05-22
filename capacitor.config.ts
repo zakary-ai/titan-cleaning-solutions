@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "com.deleoai.titansolutions",
+  appId: "com.deleoai.titansolution",
   appName: "Titan Solutions",
   webDir: "dist",
   // Load the live Lovable-hosted web app so updates ship instantly
