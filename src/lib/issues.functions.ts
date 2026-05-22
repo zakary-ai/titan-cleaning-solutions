@@ -9,6 +9,7 @@ export const createIssue = createServerFn({ method: "POST" })
     property_id: z.string().uuid(),
     area_id: z.string().uuid().optional().nullable(),
     upload_id: z.string().uuid().optional().nullable(),
+    special_project_id: z.string().uuid().optional().nullable(),
     title: z.string().trim().min(1).max(160),
     initial_comment: z.string().trim().min(1).max(2000),
   }).parse(d))
@@ -19,7 +20,6 @@ export const createIssue = createServerFn({ method: "POST" })
       status: "open",
     }).select("*").single();
     if (error) throw new Error(error.message);
-    // Seed first message
     await context.supabase.from("messages").insert({
       issue_id: row.id, sender_id: context.userId, body: data.initial_comment,
     });
