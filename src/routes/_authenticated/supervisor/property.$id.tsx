@@ -5,6 +5,8 @@ import { getNightlyChecklist, recordUpload, submitNightlyReport, signMediaUrl, u
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SpecialProjectsManager } from "@/components/special-projects-view";
 import { ArrowLeft, Camera, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { useState, useRef } from "react";
 import { toast } from "sonner";
@@ -44,26 +46,39 @@ function NightlyChecklist() {
       <Link to="/supervisor" className="inline-flex items-center text-sm text-muted-foreground hover:text-gold">
         <ArrowLeft className="mr-1 h-3 w-3" /> Properties
       </Link>
-      <div className="mt-2 flex items-end justify-between">
-        <div>
-          <h1 className="font-display text-3xl">{data?.property?.name}</h1>
-          <p className="text-sm text-muted-foreground">Service date: {today}</p>
-        </div>
-        <Button onClick={() => submitReport.mutate()} disabled={submitReport.isPending}>
-          {submitReport.isPending ? "Submitting…" : "Submit nightly report"}
-        </Button>
+      <div className="mt-2">
+        <h1 className="font-display text-3xl">{data?.property?.name}</h1>
+        <p className="text-sm text-muted-foreground">Service date: {today}</p>
       </div>
 
-      <div className="mt-6 space-y-3">
-        {(data?.areas ?? []).map((area: any) => {
-          const upload = (data?.uploads ?? []).find((u: any) => u.area_id === area.id);
-          return (
-            <AreaCard key={area.id} area={area} upload={upload} property_id={id} service_date={today}
-              record={record} updateNotes={updateNotes}
-              onChange={() => qc.invalidateQueries({ queryKey: ["checklist", id, today] })} />
-          );
-        })}
-      </div>
+      <Tabs defaultValue="nightly" className="mt-6">
+        <TabsList>
+          <TabsTrigger value="nightly">Nightly Checklist</TabsTrigger>
+          <TabsTrigger value="special">Special Projects</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="nightly" className="mt-4">
+          <div className="mb-4 flex justify-end">
+            <Button onClick={() => submitReport.mutate()} disabled={submitReport.isPending}>
+              {submitReport.isPending ? "Submitting…" : "Submit nightly report"}
+            </Button>
+          </div>
+          <div className="space-y-3">
+            {(data?.areas ?? []).map((area: any) => {
+              const upload = (data?.uploads ?? []).find((u: any) => u.area_id === area.id);
+              return (
+                <AreaCard key={area.id} area={area} upload={upload} property_id={id} service_date={today}
+                  record={record} updateNotes={updateNotes}
+                  onChange={() => qc.invalidateQueries({ queryKey: ["checklist", id, today] })} />
+              );
+            })}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="special" className="mt-4">
+          <SpecialProjectsManager property_id={id} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
