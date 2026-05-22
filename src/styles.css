@@ -117,7 +117,11 @@
     -webkit-tap-highlight-color: transparent;
     text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
+    /* Disable iOS rubber-band overscroll so fixed bottom nav stays put */
+    overscroll-behavior-y: none;
+    overflow-x: hidden;
   }
+  html, body { height: 100%; }
 
   /* Prevent iOS Safari from auto-zooming inputs (<16px triggers zoom) */
   @media (max-width: 767px) {
