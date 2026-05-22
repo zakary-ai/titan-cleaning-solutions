@@ -37,17 +37,19 @@ export const listIssues = createServerFn({ method: "GET" })
     if (data.status !== "all") q = q.eq("status", data.status);
     const { data: issues, error } = await q;
     if (error) throw new Error(error.message);
-    if (!issues || issues.length === 0) return { issues: [], properties: {}, areas: {}, profiles: {} };
+    if (!issues || issues.length === 0) return { issues: [], properties: {}, areas: {}, profiles: {}, specialProjects: {} };
     const propIds = Array.from(new Set(issues.map((i: any) => i.property_id)));
     const areaIds = Array.from(new Set(issues.map((i: any) => i.area_id).filter(Boolean)));
     const userIds = Array.from(new Set(issues.map((i: any) => i.client_user_id).filter(Boolean)));
-    const [{ data: properties }, { data: areas }, { data: profiles }] = await Promise.all([
+    const spIds = Array.from(new Set(issues.map((i: any) => i.special_project_id).filter(Boolean)));
+    const [{ data: properties }, { data: areas }, { data: profiles }, { data: specials }] = await Promise.all([
       context.supabase.from("properties").select("id,name,client_organization").in("id", propIds),
       areaIds.length ? context.supabase.from("property_areas").select("id,area_name").in("id", areaIds) : Promise.resolve({ data: [] }),
       userIds.length ? context.supabase.from("profiles").select("id,full_name,email,organization_name").in("id", userIds) : Promise.resolve({ data: [] }),
+      spIds.length ? context.supabase.from("special_projects").select("id,caption,file_url,file_type").in("id", spIds) : Promise.resolve({ data: [] }),
     ]);
     const toMap = (rows: any[], k = "id") => Object.fromEntries((rows ?? []).map((r) => [r[k], r]));
-    return { issues, properties: toMap(properties as any[]), areas: toMap(areas as any[]), profiles: toMap(profiles as any[]) };
+    return { issues, properties: toMap(properties as any[]), areas: toMap(areas as any[]), profiles: toMap(profiles as any[]), specialProjects: toMap(specials as any[]) };
   });
 
 export const getIssueThread = createServerFn({ method: "GET" })
