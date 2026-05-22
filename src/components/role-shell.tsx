@@ -89,7 +89,7 @@ export function RoleShell({ items, brandSubtitle, children }: { items: NavItem[]
         style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)" }}
       >
         <div className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-gold" />
+          <img src="/icon-512.png" alt="Titan Solutions" className="h-7 w-7 object-contain" />
           <span className="font-display text-base">Titan</span>
           <span className="text-[10px] uppercase tracking-[0.18em] text-gold">{brandSubtitle}</span>
         </div>
