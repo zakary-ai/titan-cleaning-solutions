@@ -117,6 +117,8 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
             {(data?.issues ?? []).map((i: any) => {
               const p = data!.properties[i.property_id];
               const a = i.area_id ? data!.areas[i.area_id] : null;
+              const sp = i.special_project_id ? (data as any).specialProjects?.[i.special_project_id] : null;
+              const subtitle = sp ? `Special: ${sp.caption}` : (a?.area_name ?? "—");
               return (
                 <button key={i.id} onClick={() => setSelected(i.id)}
                   className={`w-full rounded-lg border p-3 text-left transition ${selected === i.id ? "border-gold bg-card" : "border-border bg-card/50 hover:bg-card"}`}>
@@ -124,7 +126,7 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
                     <span className="text-sm font-semibold truncate">{i.title}</span>
                     <span className="text-[10px] uppercase text-gold">{i.status === "resolved" ? "resolved" : "open"}</span>
                   </div>
-                  <div className="mt-1 text-xs text-muted-foreground">{p?.name} · {a?.area_name ?? "—"}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">{p?.name} · {subtitle}</div>
                   <div className="text-[10px] text-muted-foreground">{format(new Date(i.created_at), "MMM d, p")}</div>
                 </button>
               );
