@@ -145,8 +145,8 @@ function PrivacyPage() {
             <h2 className="font-display text-xl text-gold">11. Contact us</h2>
             <p className="mt-2">
               Questions, requests, or concerns about this policy? Email{" "}
-              <a className="text-gold underline" href="mailto:privacy@titancleaning.app">
-                privacy@titancleaning.app
+              <a className="text-gold underline" href="mailto:frank@titansolutionsco.com">
+                frank@titansolutionsco.com
               </a>
               .
             </p>
