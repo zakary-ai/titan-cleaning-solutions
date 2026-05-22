@@ -2,6 +2,8 @@
 
 set -e
 
+cd $CI_PRIMARY_REPOSITORY_PATH
+
 echo "Installing Node dependencies..."
 
 node -v || true
