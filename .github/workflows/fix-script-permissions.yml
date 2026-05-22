@@ -1,0 +1,25 @@
+name: Fix Xcode Cloud Script Permissions
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix-permissions:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Make script executable
+        run: |
+          chmod +x ci_scripts/ci_post_clone.sh
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add ci_scripts/ci_post_clone.sh
+          git update-index --chmod=+x ci_scripts/ci_post_clone.sh
+          git commit -m "Make Xcode Cloud post clone script executable" || echo "No changes to commit"
+          git push
