@@ -6,6 +6,9 @@ on:
 permissions:
   contents: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   generate-ios:
     runs-on: macos-latest
@@ -14,10 +17,13 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node 24
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
+
+      - name: Confirm Node version
+        run: node -v
 
       - name: Install dependencies
         run: npm install
@@ -25,11 +31,20 @@ jobs:
       - name: Build web app
         run: npm run build
 
-      - name: Install Capacitor iOS
-        run: npm install @capacitor/ios --save
+      - name: Install Capacitor packages
+        run: npm install @capacitor/core @capacitor/cli @capacitor/ios --save
 
-      - name: Add iOS platform
-        run: npx cap add ios
+      - name: Create Capacitor config if missing
+        run: |
+          if [ ! -f "capacitor.config.ts" ] && [ ! -f "capacitor.config.json" ]; then
+            npx cap init "Titan Solutions" "com.deleomedia.titansolutions" --web-dir=dist
+          fi
+
+      - name: Add iOS platform if missing
+        run: |
+          if [ ! -d "ios" ]; then
+            npx cap add ios
+          fi
 
       - name: Sync Capacitor iOS
         run: npx cap sync ios
@@ -38,6 +53,6 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add ios package.json package-lock.json
+          git add ios package.json package-lock.json capacitor.config.*
           git commit -m "Add iOS Capacitor project" || echo "No changes to commit"
           git push
