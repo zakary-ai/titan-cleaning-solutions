@@ -1,0 +1,29 @@
+{
+  "appId": "com.deleoai.titansolutions",
+  "appName": "Titan Solutions",
+  "webDir": "dist",
+  "server": {
+    "url": "https://titan-cleaning-solutions.lovable.app",
+    "cleartext": false
+  },
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#0b0b0b",
+    "limitsNavigationsToAppBoundDomains": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "launchAutoHide": true,
+      "backgroundColor": "#0b0b0b",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "splashFullScreen": true,
+      "splashImmersive": true
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#0b0b0b"
+    }
+  }
+}
