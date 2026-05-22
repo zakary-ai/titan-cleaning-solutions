@@ -23,6 +23,7 @@ import { Route as AuthenticatedClientIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedSupervisorIssuesRouteImport } from './routes/_authenticated/supervisor/issues'
 import { Route as AuthenticatedSupervisorHistoryRouteImport } from './routes/_authenticated/supervisor/history'
+import { Route as AuthenticatedClientSpecialProjectsRouteImport } from './routes/_authenticated/client/special-projects'
 import { Route as AuthenticatedClientIssuesRouteImport } from './routes/_authenticated/client/issues'
 import { Route as AuthenticatedClientHistoryRouteImport } from './routes/_authenticated/client/history'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
@@ -107,6 +108,12 @@ const AuthenticatedSupervisorHistoryRoute =
     path: '/history',
     getParentRoute: () => AuthenticatedSupervisorRoute,
   } as any)
+const AuthenticatedClientSpecialProjectsRoute =
+  AuthenticatedClientSpecialProjectsRouteImport.update({
+    id: '/special-projects',
+    path: '/special-projects',
+    getParentRoute: () => AuthenticatedClientRoute,
+  } as any)
 const AuthenticatedClientIssuesRoute =
   AuthenticatedClientIssuesRouteImport.update({
     id: '/issues',
@@ -182,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/client/history': typeof AuthenticatedClientHistoryRoute
   '/client/issues': typeof AuthenticatedClientIssuesRoute
+  '/client/special-projects': typeof AuthenticatedClientSpecialProjectsRoute
   '/supervisor/history': typeof AuthenticatedSupervisorHistoryRoute
   '/supervisor/issues': typeof AuthenticatedSupervisorIssuesRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -204,6 +212,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/client/history': typeof AuthenticatedClientHistoryRoute
   '/client/issues': typeof AuthenticatedClientIssuesRoute
+  '/client/special-projects': typeof AuthenticatedClientSpecialProjectsRoute
   '/supervisor/history': typeof AuthenticatedSupervisorHistoryRoute
   '/supervisor/issues': typeof AuthenticatedSupervisorIssuesRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -231,6 +240,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/client/history': typeof AuthenticatedClientHistoryRoute
   '/_authenticated/client/issues': typeof AuthenticatedClientIssuesRoute
+  '/_authenticated/client/special-projects': typeof AuthenticatedClientSpecialProjectsRoute
   '/_authenticated/supervisor/history': typeof AuthenticatedSupervisorHistoryRoute
   '/_authenticated/supervisor/issues': typeof AuthenticatedSupervisorIssuesRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -258,6 +268,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/client/history'
     | '/client/issues'
+    | '/client/special-projects'
     | '/supervisor/history'
     | '/supervisor/issues'
     | '/admin/'
@@ -280,6 +291,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/client/history'
     | '/client/issues'
+    | '/client/special-projects'
     | '/supervisor/history'
     | '/supervisor/issues'
     | '/admin'
@@ -306,6 +318,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/users'
     | '/_authenticated/client/history'
     | '/_authenticated/client/issues'
+    | '/_authenticated/client/special-projects'
     | '/_authenticated/supervisor/history'
     | '/_authenticated/supervisor/issues'
     | '/_authenticated/admin/'
@@ -426,6 +439,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSupervisorHistoryRouteImport
       parentRoute: typeof AuthenticatedSupervisorRoute
     }
+    '/_authenticated/client/special-projects': {
+      id: '/_authenticated/client/special-projects'
+      path: '/special-projects'
+      fullPath: '/client/special-projects'
+      preLoaderRoute: typeof AuthenticatedClientSpecialProjectsRouteImport
+      parentRoute: typeof AuthenticatedClientRoute
+    }
     '/_authenticated/client/issues': {
       id: '/_authenticated/client/issues'
       path: '/issues'
@@ -538,6 +558,7 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedClientRouteChildren {
   AuthenticatedClientHistoryRoute: typeof AuthenticatedClientHistoryRoute
   AuthenticatedClientIssuesRoute: typeof AuthenticatedClientIssuesRoute
+  AuthenticatedClientSpecialProjectsRoute: typeof AuthenticatedClientSpecialProjectsRoute
   AuthenticatedClientIndexRoute: typeof AuthenticatedClientIndexRoute
   AuthenticatedClientPropertyIdRoute: typeof AuthenticatedClientPropertyIdRoute
 }
@@ -545,6 +566,8 @@ interface AuthenticatedClientRouteChildren {
 const AuthenticatedClientRouteChildren: AuthenticatedClientRouteChildren = {
   AuthenticatedClientHistoryRoute: AuthenticatedClientHistoryRoute,
   AuthenticatedClientIssuesRoute: AuthenticatedClientIssuesRoute,
+  AuthenticatedClientSpecialProjectsRoute:
+    AuthenticatedClientSpecialProjectsRoute,
   AuthenticatedClientIndexRoute: AuthenticatedClientIndexRoute,
   AuthenticatedClientPropertyIdRoute: AuthenticatedClientPropertyIdRoute,
 }
@@ -599,13 +622,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

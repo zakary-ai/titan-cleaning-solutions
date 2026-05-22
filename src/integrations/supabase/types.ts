@@ -98,6 +98,7 @@ export type Database = {
           initial_comment: string | null
           property_id: string
           resolved_at: string | null
+          special_project_id: string | null
           status: Database["public"]["Enums"]["issue_status"]
           title: string
           upload_id: string | null
@@ -110,6 +111,7 @@ export type Database = {
           initial_comment?: string | null
           property_id: string
           resolved_at?: string | null
+          special_project_id?: string | null
           status?: Database["public"]["Enums"]["issue_status"]
           title: string
           upload_id?: string | null
@@ -122,6 +124,7 @@ export type Database = {
           initial_comment?: string | null
           property_id?: string
           resolved_at?: string | null
+          special_project_id?: string | null
           status?: Database["public"]["Enums"]["issue_status"]
           title?: string
           upload_id?: string | null
@@ -139,6 +142,13 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issues_special_project_id_fkey"
+            columns: ["special_project_id"]
+            isOneToOne: false
+            referencedRelation: "special_projects"
             referencedColumns: ["id"]
           },
           {
@@ -314,6 +324,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      special_projects: {
+        Row: {
+          caption: string
+          created_at: string
+          file_type: Database["public"]["Enums"]["upload_file_type"]
+          file_url: string
+          id: string
+          project_date: string
+          property_id: string
+          supervisor_id: string | null
+        }
+        Insert: {
+          caption: string
+          created_at?: string
+          file_type: Database["public"]["Enums"]["upload_file_type"]
+          file_url: string
+          id?: string
+          project_date?: string
+          property_id: string
+          supervisor_id?: string | null
+        }
+        Update: {
+          caption?: string
+          created_at?: string
+          file_type?: Database["public"]["Enums"]["upload_file_type"]
+          file_url?: string
+          id?: string
+          project_date?: string
+          property_id?: string
+          supervisor_id?: string | null
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
