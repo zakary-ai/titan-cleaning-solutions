@@ -13,15 +13,22 @@ import { Route as SupportRouteImport } from './routes/support'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PendingRouteImport } from './routes/pending'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as DemoRouteImport } from './routes/demo'
 import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DemoIndexRouteImport } from './routes/demo/index'
+import { Route as DemoClientRouteImport } from './routes/demo/client'
 import { Route as AuthenticatedSupervisorRouteImport } from './routes/_authenticated/supervisor'
 import { Route as AuthenticatedClientRouteImport } from './routes/_authenticated/client'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as DemoClientIndexRouteImport } from './routes/demo/client/index'
 import { Route as AuthenticatedSupervisorIndexRouteImport } from './routes/_authenticated/supervisor/index'
 import { Route as AuthenticatedClientIndexRouteImport } from './routes/_authenticated/client/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as DemoClientSpecialsRouteImport } from './routes/demo/client/specials'
+import { Route as DemoClientHistoryRouteImport } from './routes/demo/client/history'
+import { Route as DemoClientCommentsRouteImport } from './routes/demo/client/comments'
 import { Route as AuthenticatedSupervisorIssuesRouteImport } from './routes/_authenticated/supervisor/issues'
 import { Route as AuthenticatedSupervisorHistoryRouteImport } from './routes/_authenticated/supervisor/history'
 import { Route as AuthenticatedClientSpecialProjectsRouteImport } from './routes/_authenticated/client/special-projects'
@@ -56,6 +63,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AcceptInviteRoute = AcceptInviteRouteImport.update({
   id: '/accept-invite',
   path: '/accept-invite',
@@ -69,6 +81,16 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DemoIndexRoute = DemoIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoClientRoute = DemoClientRouteImport.update({
+  id: '/client',
+  path: '/client',
+  getParentRoute: () => DemoRoute,
 } as any)
 const AuthenticatedSupervisorRoute = AuthenticatedSupervisorRouteImport.update({
   id: '/supervisor',
@@ -84,6 +106,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const DemoClientIndexRoute = DemoClientIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DemoClientRoute,
 } as any)
 const AuthenticatedSupervisorIndexRoute =
   AuthenticatedSupervisorIndexRouteImport.update({
@@ -101,6 +128,21 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const DemoClientSpecialsRoute = DemoClientSpecialsRouteImport.update({
+  id: '/specials',
+  path: '/specials',
+  getParentRoute: () => DemoClientRoute,
+} as any)
+const DemoClientHistoryRoute = DemoClientHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => DemoClientRoute,
+} as any)
+const DemoClientCommentsRoute = DemoClientCommentsRouteImport.update({
+  id: '/comments',
+  path: '/comments',
+  getParentRoute: () => DemoClientRoute,
 } as any)
 const AuthenticatedSupervisorIssuesRoute =
   AuthenticatedSupervisorIssuesRouteImport.update({
@@ -183,6 +225,7 @@ const AuthenticatedAdminPropertyIdViewRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accept-invite': typeof AcceptInviteRoute
+  '/demo': typeof DemoRouteWithChildren
   '/login': typeof LoginRoute
   '/pending': typeof PendingRoute
   '/privacy': typeof PrivacyRoute
@@ -190,6 +233,8 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/client': typeof AuthenticatedClientRouteWithChildren
   '/supervisor': typeof AuthenticatedSupervisorRouteWithChildren
+  '/demo/client': typeof DemoClientRouteWithChildren
+  '/demo/': typeof DemoIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/issues': typeof AuthenticatedAdminIssuesRoute
   '/admin/properties': typeof AuthenticatedAdminPropertiesRouteWithChildren
@@ -199,9 +244,13 @@ export interface FileRoutesByFullPath {
   '/client/special-projects': typeof AuthenticatedClientSpecialProjectsRoute
   '/supervisor/history': typeof AuthenticatedSupervisorHistoryRoute
   '/supervisor/issues': typeof AuthenticatedSupervisorIssuesRoute
+  '/demo/client/comments': typeof DemoClientCommentsRoute
+  '/demo/client/history': typeof DemoClientHistoryRoute
+  '/demo/client/specials': typeof DemoClientSpecialsRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/client/': typeof AuthenticatedClientIndexRoute
   '/supervisor/': typeof AuthenticatedSupervisorIndexRoute
+  '/demo/client/': typeof DemoClientIndexRoute
   '/admin/properties/$id': typeof AuthenticatedAdminPropertiesIdRoute
   '/client/property/$id': typeof AuthenticatedClientPropertyIdRoute
   '/supervisor/property/$id': typeof AuthenticatedSupervisorPropertyIdRoute
@@ -214,6 +263,7 @@ export interface FileRoutesByTo {
   '/pending': typeof PendingRoute
   '/privacy': typeof PrivacyRoute
   '/support': typeof SupportRoute
+  '/demo': typeof DemoIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/issues': typeof AuthenticatedAdminIssuesRoute
   '/admin/properties': typeof AuthenticatedAdminPropertiesRouteWithChildren
@@ -223,9 +273,13 @@ export interface FileRoutesByTo {
   '/client/special-projects': typeof AuthenticatedClientSpecialProjectsRoute
   '/supervisor/history': typeof AuthenticatedSupervisorHistoryRoute
   '/supervisor/issues': typeof AuthenticatedSupervisorIssuesRoute
+  '/demo/client/comments': typeof DemoClientCommentsRoute
+  '/demo/client/history': typeof DemoClientHistoryRoute
+  '/demo/client/specials': typeof DemoClientSpecialsRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/client': typeof AuthenticatedClientIndexRoute
   '/supervisor': typeof AuthenticatedSupervisorIndexRoute
+  '/demo/client': typeof DemoClientIndexRoute
   '/admin/properties/$id': typeof AuthenticatedAdminPropertiesIdRoute
   '/client/property/$id': typeof AuthenticatedClientPropertyIdRoute
   '/supervisor/property/$id': typeof AuthenticatedSupervisorPropertyIdRoute
@@ -236,6 +290,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/accept-invite': typeof AcceptInviteRoute
+  '/demo': typeof DemoRouteWithChildren
   '/login': typeof LoginRoute
   '/pending': typeof PendingRoute
   '/privacy': typeof PrivacyRoute
@@ -243,6 +298,8 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/client': typeof AuthenticatedClientRouteWithChildren
   '/_authenticated/supervisor': typeof AuthenticatedSupervisorRouteWithChildren
+  '/demo/client': typeof DemoClientRouteWithChildren
+  '/demo/': typeof DemoIndexRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/issues': typeof AuthenticatedAdminIssuesRoute
   '/_authenticated/admin/properties': typeof AuthenticatedAdminPropertiesRouteWithChildren
@@ -252,9 +309,13 @@ export interface FileRoutesById {
   '/_authenticated/client/special-projects': typeof AuthenticatedClientSpecialProjectsRoute
   '/_authenticated/supervisor/history': typeof AuthenticatedSupervisorHistoryRoute
   '/_authenticated/supervisor/issues': typeof AuthenticatedSupervisorIssuesRoute
+  '/demo/client/comments': typeof DemoClientCommentsRoute
+  '/demo/client/history': typeof DemoClientHistoryRoute
+  '/demo/client/specials': typeof DemoClientSpecialsRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/client/': typeof AuthenticatedClientIndexRoute
   '/_authenticated/supervisor/': typeof AuthenticatedSupervisorIndexRoute
+  '/demo/client/': typeof DemoClientIndexRoute
   '/_authenticated/admin/properties/$id': typeof AuthenticatedAdminPropertiesIdRoute
   '/_authenticated/client/property/$id': typeof AuthenticatedClientPropertyIdRoute
   '/_authenticated/supervisor/property/$id': typeof AuthenticatedSupervisorPropertyIdRoute
@@ -265,6 +326,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/accept-invite'
+    | '/demo'
     | '/login'
     | '/pending'
     | '/privacy'
@@ -272,6 +334,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/client'
     | '/supervisor'
+    | '/demo/client'
+    | '/demo/'
     | '/admin/analytics'
     | '/admin/issues'
     | '/admin/properties'
@@ -281,9 +345,13 @@ export interface FileRouteTypes {
     | '/client/special-projects'
     | '/supervisor/history'
     | '/supervisor/issues'
+    | '/demo/client/comments'
+    | '/demo/client/history'
+    | '/demo/client/specials'
     | '/admin/'
     | '/client/'
     | '/supervisor/'
+    | '/demo/client/'
     | '/admin/properties/$id'
     | '/client/property/$id'
     | '/supervisor/property/$id'
@@ -296,6 +364,7 @@ export interface FileRouteTypes {
     | '/pending'
     | '/privacy'
     | '/support'
+    | '/demo'
     | '/admin/analytics'
     | '/admin/issues'
     | '/admin/properties'
@@ -305,9 +374,13 @@ export interface FileRouteTypes {
     | '/client/special-projects'
     | '/supervisor/history'
     | '/supervisor/issues'
+    | '/demo/client/comments'
+    | '/demo/client/history'
+    | '/demo/client/specials'
     | '/admin'
     | '/client'
     | '/supervisor'
+    | '/demo/client'
     | '/admin/properties/$id'
     | '/client/property/$id'
     | '/supervisor/property/$id'
@@ -317,6 +390,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/accept-invite'
+    | '/demo'
     | '/login'
     | '/pending'
     | '/privacy'
@@ -324,6 +398,8 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/client'
     | '/_authenticated/supervisor'
+    | '/demo/client'
+    | '/demo/'
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/issues'
     | '/_authenticated/admin/properties'
@@ -333,9 +409,13 @@ export interface FileRouteTypes {
     | '/_authenticated/client/special-projects'
     | '/_authenticated/supervisor/history'
     | '/_authenticated/supervisor/issues'
+    | '/demo/client/comments'
+    | '/demo/client/history'
+    | '/demo/client/specials'
     | '/_authenticated/admin/'
     | '/_authenticated/client/'
     | '/_authenticated/supervisor/'
+    | '/demo/client/'
     | '/_authenticated/admin/properties/$id'
     | '/_authenticated/client/property/$id'
     | '/_authenticated/supervisor/property/$id'
@@ -346,6 +426,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AcceptInviteRoute: typeof AcceptInviteRoute
+  DemoRoute: typeof DemoRouteWithChildren
   LoginRoute: typeof LoginRoute
   PendingRoute: typeof PendingRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -382,6 +463,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/accept-invite': {
       id: '/accept-invite'
       path: '/accept-invite'
@@ -402,6 +490,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/demo/': {
+      id: '/demo/'
+      path: '/'
+      fullPath: '/demo/'
+      preLoaderRoute: typeof DemoIndexRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/client': {
+      id: '/demo/client'
+      path: '/client'
+      fullPath: '/demo/client'
+      preLoaderRoute: typeof DemoClientRouteImport
+      parentRoute: typeof DemoRoute
     }
     '/_authenticated/supervisor': {
       id: '/_authenticated/supervisor'
@@ -424,6 +526,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/demo/client/': {
+      id: '/demo/client/'
+      path: '/'
+      fullPath: '/demo/client/'
+      preLoaderRoute: typeof DemoClientIndexRouteImport
+      parentRoute: typeof DemoClientRoute
+    }
     '/_authenticated/supervisor/': {
       id: '/_authenticated/supervisor/'
       path: '/'
@@ -444,6 +553,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/demo/client/specials': {
+      id: '/demo/client/specials'
+      path: '/specials'
+      fullPath: '/demo/client/specials'
+      preLoaderRoute: typeof DemoClientSpecialsRouteImport
+      parentRoute: typeof DemoClientRoute
+    }
+    '/demo/client/history': {
+      id: '/demo/client/history'
+      path: '/history'
+      fullPath: '/demo/client/history'
+      preLoaderRoute: typeof DemoClientHistoryRouteImport
+      parentRoute: typeof DemoClientRoute
+    }
+    '/demo/client/comments': {
+      id: '/demo/client/comments'
+      path: '/comments'
+      fullPath: '/demo/client/comments'
+      preLoaderRoute: typeof DemoClientCommentsRouteImport
+      parentRoute: typeof DemoClientRoute
     }
     '/_authenticated/supervisor/issues': {
       id: '/_authenticated/supervisor/issues'
@@ -631,10 +761,41 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface DemoClientRouteChildren {
+  DemoClientCommentsRoute: typeof DemoClientCommentsRoute
+  DemoClientHistoryRoute: typeof DemoClientHistoryRoute
+  DemoClientSpecialsRoute: typeof DemoClientSpecialsRoute
+  DemoClientIndexRoute: typeof DemoClientIndexRoute
+}
+
+const DemoClientRouteChildren: DemoClientRouteChildren = {
+  DemoClientCommentsRoute: DemoClientCommentsRoute,
+  DemoClientHistoryRoute: DemoClientHistoryRoute,
+  DemoClientSpecialsRoute: DemoClientSpecialsRoute,
+  DemoClientIndexRoute: DemoClientIndexRoute,
+}
+
+const DemoClientRouteWithChildren = DemoClientRoute._addFileChildren(
+  DemoClientRouteChildren,
+)
+
+interface DemoRouteChildren {
+  DemoClientRoute: typeof DemoClientRouteWithChildren
+  DemoIndexRoute: typeof DemoIndexRoute
+}
+
+const DemoRouteChildren: DemoRouteChildren = {
+  DemoClientRoute: DemoClientRouteWithChildren,
+  DemoIndexRoute: DemoIndexRoute,
+}
+
+const DemoRouteWithChildren = DemoRoute._addFileChildren(DemoRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AcceptInviteRoute: AcceptInviteRoute,
+  DemoRoute: DemoRouteWithChildren,
   LoginRoute: LoginRoute,
   PendingRoute: PendingRoute,
   PrivacyRoute: PrivacyRoute,
@@ -643,13 +804,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
