@@ -19,6 +19,7 @@ export const DEMO_AREAS = [
 export type DemoMedia = {
   type: "video" | "image";
   src: string;
+  poster?: string;
   caption: string;
   uploadedAt: string; // ISO
 };
