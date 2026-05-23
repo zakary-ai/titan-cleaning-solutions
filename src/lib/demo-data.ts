@@ -29,18 +29,21 @@ export const DEMO_TODAY: Record<string, DemoMedia> = {
   lobby: {
     type: "video",
     src: lobbyVideo,
+    poster: lobbyPoster,
     caption: "This is an example video.",
     uploadedAt: new Date().toISOString(),
   },
   locker: {
     type: "video",
     src: lockerRoomVideo,
+    poster: lockerRoomPoster,
     caption: "This is an example video.",
     uploadedAt: new Date().toISOString(),
   },
   bathroom: {
     type: "video",
     src: bathroomVideo,
+    poster: bathroomPoster,
     caption: "This is an example video.",
     uploadedAt: new Date().toISOString(),
   },
