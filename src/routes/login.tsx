@@ -85,6 +85,8 @@ function LoginPage() {
         </form>
         <p className="mt-6 text-center text-xs text-muted-foreground">
           <a href="/privacy" className="underline underline-offset-4 hover:text-gold">Privacy Policy</a>
+          <span className="mx-2 text-border">·</span>
+          <a href="/support" className="underline underline-offset-4 hover:text-gold">Support</a>
         </p>
       </div>
     </div>
