@@ -87,6 +87,8 @@ function LoginPage() {
           <a href="/privacy" className="underline underline-offset-4 hover:text-gold">Privacy Policy</a>
           <span className="mx-2 text-border">·</span>
           <a href="/support" className="underline underline-offset-4 hover:text-gold">Support</a>
+          <span className="mx-2 text-border">·</span>
+          <a href="/demo" className="underline underline-offset-4 hover:text-gold">View Demo</a>
         </p>
       </div>
     </div>

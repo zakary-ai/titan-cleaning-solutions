@@ -1,6 +1,6 @@
-import bathroomVideo from "@/assets/demo/bathroom.mov";
-import lockerRoomVideo from "@/assets/demo/locker-room.mov";
-import lobbyVideo from "@/assets/demo/lobby.mov";
+const bathroomVideo = "/demo/bathroom.mov";
+const lockerRoomVideo = "/demo/locker-room.mov";
+const lobbyVideo = "/demo/lobby.mov";
 
 export const DEMO_PROPERTY = {
   name: "Demo Hotel",
