@@ -29,7 +29,14 @@ function AreaCard({ name, media }: { name: string; media: DemoMedia }) {
     <div className="overflow-hidden rounded-xl bg-card gold-border">
       <div className="aspect-video bg-secondary">
         {media.type === "video" ? (
-          <video src={media.src} controls playsInline className="h-full w-full object-cover" />
+          <video
+            src={media.src}
+            poster={media.poster}
+            controls
+            playsInline
+            preload="metadata"
+            className="h-full w-full object-cover"
+          />
         ) : (
           <img src={media.src} alt={name} className="h-full w-full object-cover" />
         )}
