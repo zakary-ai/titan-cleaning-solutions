@@ -60,7 +60,7 @@ In the Xcode project navigator, click the **App** target, then:
 
 1. **Signing & Capabilities tab**
    - Team: select your Apple Developer team
-   - Bundle Identifier: `com.deleoai.titansolutions` (already set)
+   - Bundle Identifier: `com.deleoai.titansolution` (already set)
    - Make sure "Automatically manage signing" is checked
 
 2. **General tab**
@@ -77,7 +77,7 @@ In the Xcode project navigator, click the **App** target, then:
 
 1. In **App Store Connect** (https://appstoreconnect.apple.com):
    - Create a new app
-   - Bundle ID: `com.deleoai.titansolutions`
+   - Bundle ID: `com.deleoai.titansolution`
    - Name: `Titan Solutions`
    - Fill in the App Information (description, keywords, screenshots,
      privacy policy URL, support URL, etc.)
