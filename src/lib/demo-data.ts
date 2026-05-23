@@ -1,6 +1,9 @@
-const bathroomVideo = "/demo/bathroom.mov";
-const lockerRoomVideo = "/demo/locker-room.mov";
-const lobbyVideo = "/demo/lobby.mov";
+const bathroomVideo = "/demo/bathroom.mp4";
+const lockerRoomVideo = "/demo/locker-room.mp4";
+const lobbyVideo = "/demo/lobby.mp4";
+const bathroomPoster = "/demo/bathroom.jpg";
+const lockerRoomPoster = "/demo/locker-room.jpg";
+const lobbyPoster = "/demo/lobby.jpg";
 
 export const DEMO_PROPERTY = {
   name: "Demo Hotel",
@@ -16,6 +19,7 @@ export const DEMO_AREAS = [
 export type DemoMedia = {
   type: "video" | "image";
   src: string;
+  poster?: string;
   caption: string;
   uploadedAt: string; // ISO
 };
@@ -25,18 +29,21 @@ export const DEMO_TODAY: Record<string, DemoMedia> = {
   lobby: {
     type: "video",
     src: lobbyVideo,
+    poster: lobbyPoster,
     caption: "This is an example video.",
     uploadedAt: new Date().toISOString(),
   },
   locker: {
     type: "video",
     src: lockerRoomVideo,
+    poster: lockerRoomPoster,
     caption: "This is an example video.",
     uploadedAt: new Date().toISOString(),
   },
   bathroom: {
     type: "video",
     src: bathroomVideo,
+    poster: bathroomPoster,
     caption: "This is an example video.",
     uploadedAt: new Date().toISOString(),
   },
