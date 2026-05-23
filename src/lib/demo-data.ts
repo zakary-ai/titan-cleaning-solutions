@@ -1,6 +1,9 @@
-const bathroomVideo = "/demo/bathroom.mov";
-const lockerRoomVideo = "/demo/locker-room.mov";
-const lobbyVideo = "/demo/lobby.mov";
+const bathroomVideo = "/demo/bathroom.mp4";
+const lockerRoomVideo = "/demo/locker-room.mp4";
+const lobbyVideo = "/demo/lobby.mp4";
+const bathroomPoster = "/demo/bathroom.jpg";
+const lockerRoomPoster = "/demo/locker-room.jpg";
+const lobbyPoster = "/demo/lobby.jpg";
 
 export const DEMO_PROPERTY = {
   name: "Demo Hotel",
