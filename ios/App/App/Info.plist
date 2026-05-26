@@ -40,6 +40,12 @@
 	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>Titan Solutions uses the camera so supervisors can capture cleaning verification photos and videos of each area at the property.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Titan Solutions uses the microphone to record audio with verification videos taken on-site.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Titan Solutions accesses your photo library so supervisors can attach existing photos or videos to a cleaning report.</string>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
