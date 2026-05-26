@@ -1,62 +1,39 @@
-# Demo Page Plan
+# Fix: App Store rejection — camera crash on iPhone 17 Pro Max
 
-## Goal
-A public, read-only demo at `/demo` that lets website visitors experience the client portal without an account or backend access. All data is hardcoded in the frontend — nothing touches the database.
+## Root cause
 
-## Flow
-1. Visitor lands on `/demo` → sees a styled "Login" screen with a single button: **Login as Client (Demo)**.
-2. Clicking the button routes to `/demo/client` (the Today view).
-3. Inside the demo shell, the bottom nav has the same 4 tabs as a real client: **Today · History · Specials · Comments**.
-4. Everything is read-only. No forms submit, no comments can be sent, no buttons mutate anything. Any "new comment" affordances are removed or disabled with a small "Demo — read only" hint.
+The crash log (`termination.namespace = "TCC"`) states it explicitly:
 
-## Demo content
+> "This app has crashed because it attempted to access privacy-sensitive data without a usage description. The app's Info.plist must contain an NSCameraUsageDescription key with a string value explaining to the user how the app uses this data."
 
-**Property:** Demo Hotel
-**Areas:** Lobby, Locker Room, Bathroom
+iOS force-terminates any app the instant it touches the camera/mic/photo library without the matching purpose string in `Info.plist`. The supervisor upload flow uses `<input type="file" accept="image/*,video/*" capture="environment">`, which triggers the camera — and our current `ios/App/App/Info.plist` has none of the required keys.
 
-**Today tab — videos** (user-uploaded .mov files copied into `src/assets/demo/`):
-- Bathroom → `460E3F4B-2E75-4216-92D6-2DF94F69CA80.mov` (upload #1)
-- Locker Room → `B2B3FC96-FFDB-471F-BB1D-B02DA1EECA08.mov` (upload #2)
-- Lobby → `26CEDB5C-9BB1-4ECE-9846-05A214380537.mov` (upload #3)
+This is a 100% reproducible crash on every iOS device, not specific to the iPhone 17 Pro Max. Adding the keys fixes it; no Xcode/native code changes needed beyond the plist.
 
-Each area card shows the video, "Completed" status, and a caption like "This is an example video."
+## Change
 
-**History tab:**
-- Calendar with 3–4 highlighted past dates.
-- Selecting a date shows the same 3 areas with example stock photos (sourced from Unsplash or generated placeholders) and the caption "This is an example picture."
+Edit **`ios/App/App/Info.plist`** to add three privacy strings (camera is the one Apple cited, but we also touch the photo library and record video with audio, so we add all three to avoid a follow-up rejection):
 
-**Specials tab:**
-- Calendar with 2 highlighted dates.
-- Each date shows 1–2 example special-project photos with captions like "This is an example special project — deep carpet clean."
+- `NSCameraUsageDescription` — "Titan Solutions uses the camera so supervisors can capture cleaning verification photos and videos of each area at the property."
+- `NSMicrophoneUsageDescription` — "Titan Solutions uses the microphone to record audio with verification videos taken on-site."
+- `NSPhotoLibraryUsageDescription` — "Titan Solutions accesses your photo library so supervisors can attach existing photos or videos to a cleaning report."
 
-**Comments tab:**
-- 2–3 example threads (e.g., "Lobby chandelier dusty", "Locker room mirror smudges") with mock back-and-forth between "Client" and "Supervisor".
-- Threads open and display messages but the reply input is removed and the "New comment" button is hidden.
+That's the entire code change.
 
-## Technical notes
+## Resubmission steps (you run these on your Mac)
 
-**New files (all frontend, no DB):**
-- `src/routes/demo.tsx` — public route, layout wrapper using existing `RoleShell` styling, no auth checks.
-- `src/routes/demo.index.tsx` — the "demo login" landing card with the single button.
-- `src/routes/demo.client.tsx` — layout for the 4 demo tabs (mirrors `_authenticated/client.tsx` but points links at `/demo/client/*`).
-- `src/routes/demo.client.index.tsx` — Today view
-- `src/routes/demo.client.history.tsx` — History
-- `src/routes/demo.client.specials.tsx` — Specials
-- `src/routes/demo.client.comments.tsx` — Comments
-- `src/lib/demo-data.ts` — central mock data (areas, uploads per date, specials per date, comment threads).
-- `src/components/demo/*` — read-only variants of `ClientReport`, `SpecialProjectsCalendar`, and `IssuesInbox` that accept mock data as props instead of calling server functions. This avoids touching production components (less regression risk) and avoids the auth/RLS path entirely.
+After I merge the plist change:
 
-**Assets:**
-- Copy the 3 uploaded `.mov` files into `src/assets/demo/` and import them as ES modules so Vite bundles + hashes them. They serve directly from the static asset URL — no Supabase storage needed.
-- For history stock photos, use 3–4 royalty-free Unsplash hotel images referenced by URL, or generate simple placeholder images. (I'll use Unsplash URLs to keep bundle size small unless you want generated ones.)
+1. `git pull`
+2. `npm install` (if needed)
+3. `npm run build`
+4. `npx cap sync ios`
+5. `npx cap open ios`
+6. In Xcode: bump **Build** number (e.g. 26 → 27) under Target → General, then **Product → Archive → Distribute → App Store Connect**.
+7. Submit the new build for review in App Store Connect — reply to the rejection referencing the new build number and noting that the missing `NSCameraUsageDescription` (plus mic/photo library) has been added.
 
-**Login screen tweak:**
-- Add a small "View Demo" link at the bottom of `/login` pointing to `/demo` so it's easy to find, in addition to the standalone `/demo` URL used for website embeds.
+## Why this is the whole fix
 
-**Embedding:**
-- `/demo` is a normal public route, so the website can embed it via an `<iframe src="https://titan-cleaning-solutions.lovable.app/demo">`. No CSP or CORS config needed.
-
-## Out of scope
-- No supervisor or admin demo views.
-- No database seeding, no demo user account, no Supabase calls from any demo route.
-- No ability for visitors to send comments, upload, or mutate anything.
+- Exception `EXC_CRASH / SIGABRT` with `TCC` namespace = privacy-prompt violation, not a logic bug.
+- Apple's reviewer hit it the moment they tapped "Upload" on the supervisor screen.
+- No other code path in the app needs changes; the web upload flow already works once the OS allows camera access.
