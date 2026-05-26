@@ -1,39 +1,42 @@
-# Fix: App Store rejection — camera crash on iPhone 17 Pro Max
+# App Store readiness audit
 
-## Root cause
+I went through the iOS wrapper, Capacitor config, web app, and privacy surfaces. The previous rejection (missing camera usage string) is already fixed. One more concrete issue stands out; everything else looks compliant.
 
-The crash log (`termination.namespace = "TCC"`) states it explicitly:
+## Issue found: `UIRequiredDeviceCapabilities` lists `armv7`
 
-> "This app has crashed because it attempted to access privacy-sensitive data without a usage description. The app's Info.plist must contain an NSCameraUsageDescription key with a string value explaining to the user how the app uses this data."
+`ios/App/App/Info.plist` currently declares:
 
-iOS force-terminates any app the instant it touches the camera/mic/photo library without the matching purpose string in `Info.plist`. The supervisor upload flow uses `<input type="file" accept="image/*,video/*" capture="environment">`, which triggers the camera — and our current `ios/App/App/Info.plist` has none of the required keys.
+```xml
+<key>UIRequiredDeviceCapabilities</key>
+<array>
+    <string>armv7</string>
+</array>
+```
 
-This is a 100% reproducible crash on every iOS device, not specific to the iPhone 17 Pro Max. Adding the keys fixes it; no Xcode/native code changes needed beyond the plist.
+Problems:
+- `armv7` is the **32-bit** ARM instruction set. No iPhone sold since the iPhone 5s (2013) runs 32-bit, and iOS itself dropped 32-bit support in iOS 11. The reviewer's iPhone 17 Pro Max is **arm64-only**.
+- App Store Connect now rejects (or at minimum warns on) binaries that declare `armv7` as a hard install requirement, because it makes the app appear incompatible with every modern device.
+- Capacitor's official template uses `arm64` here. Our value is leftover boilerplate.
 
-## Change
+Fix: replace `armv7` with `arm64` in that array.
 
-Edit **`ios/App/App/Info.plist`** to add three privacy strings (camera is the one Apple cited, but we also touch the photo library and record video with audio, so we add all three to avoid a follow-up rejection):
+## Things I checked and are fine — no change needed
 
-- `NSCameraUsageDescription` — "Titan Solutions uses the camera so supervisors can capture cleaning verification photos and videos of each area at the property."
-- `NSMicrophoneUsageDescription` — "Titan Solutions uses the microphone to record audio with verification videos taken on-site."
-- `NSPhotoLibraryUsageDescription` — "Titan Solutions accesses your photo library so supervisors can attach existing photos or videos to a cleaning report."
+- `NSCameraUsageDescription`, `NSMicrophoneUsageDescription`, `NSPhotoLibraryUsageDescription` are present with clear, purpose-specific strings (Guideline 5.1.1).
+- `ITSAppUsesNonExemptEncryption=false` is set — avoids the export-compliance question on every upload.
+- `LSRequiresIPhoneOS=true`, supported orientations, status bar style, launch storyboard, and bundle metadata are all populated.
+- A `/privacy` route exists for the App Store "Privacy Policy URL" field.
+- `capacitor.config.ts` uses `cleartext: false` (no ATS issue) and a valid HTTPS `server.url`.
+- No undocumented privacy-sensitive APIs are touched in the web bundle (no geolocation, contacts, calendar, HealthKit, etc.).
+- The PushNotifications Capacitor plugin is wired but unused at the JS layer; harmless without an `aps-environment` entitlement.
 
-That's the entire code change.
+## Note on the live-URL wrapper (informational, no change)
 
-## Resubmission steps (you run these on your Mac)
+`capacitor.config.ts` loads `https://titan-cleaning-solutions.lovable.app`. Apple sometimes flags pure WebView wrappers under Guideline 4.2 ("minimum functionality"). This build already passed initial intake on attempt 1 (it crashed mid-review, not at submission), so we're not changing it — just flagging it so you know what to push back on if a future reviewer cites 4.2: the app uses camera/photo APIs and native upload flows that go beyond a simple website.
 
-After I merge the plist change:
+## Resubmission steps (after I push the plist fix)
 
-1. `git pull`
-2. `npm install` (if needed)
-3. `npm run build`
-4. `npx cap sync ios`
-5. `npx cap open ios`
-6. In Xcode: bump **Build** number (e.g. 26 → 27) under Target → General, then **Product → Archive → Distribute → App Store Connect**.
-7. Submit the new build for review in App Store Connect — reply to the rejection referencing the new build number and noting that the missing `NSCameraUsageDescription` (plus mic/photo library) has been added.
-
-## Why this is the whole fix
-
-- Exception `EXC_CRASH / SIGABRT` with `TCC` namespace = privacy-prompt violation, not a logic bug.
-- Apple's reviewer hit it the moment they tapped "Upload" on the supervisor screen.
-- No other code path in the app needs changes; the web upload flow already works once the OS allows camera access.
+1. `git pull && npm run build && npx cap sync ios && npx cap open ios`
+2. In Xcode bump **Build** (27 → 28) under Target → General.
+3. Product → Archive → Distribute → App Store Connect.
+4. Reply to the open review thread referencing the new build.
