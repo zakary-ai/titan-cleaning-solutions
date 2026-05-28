@@ -38,13 +38,7 @@ export function useMessageNotifications(unreadCount: number, issuesPath: string)
           description: "Tap to open the Comments inbox",
           duration: 3000,
           action: { label: "View", onClick: () => navigate({ to: issuesPath }) },
-          actionButtonStyle: { display: "none" } as any,
         });
-        // Allow tapping the toast body itself to navigate
-        setTimeout(() => {
-          const el = document.querySelector('[data-sonner-toast][data-mounted="true"]');
-          if (el) (el as HTMLElement).onclick = () => navigate({ to: issuesPath });
-        }, 0);
         if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted" && document.visibilityState !== "visible") {
           try {
             const n = new Notification("New message", {
