@@ -33,8 +33,8 @@ function UsersPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ email: "", full_name: "", role: "supervisor" as const, organization_name: "" });
   const m = useMutation({
-    mutationFn: () => invite({ data: { ...form, redirect_to: `${window.location.origin}/accept-invite` } as any }),
-    onSuccess: () => { toast.success("Invitation email sent"); setOpen(false); setForm({ email: "", full_name: "", role: "supervisor", organization_name: "" }); qc.invalidateQueries({ queryKey: ["users-all"] }); },
+    mutationFn: () => invite({ data: { ...form } as any }),
+    onSuccess: () => { toast.success("Welcome email sent"); setOpen(false); setForm({ email: "", full_name: "", role: "supervisor", organization_name: "" }); qc.invalidateQueries({ queryKey: ["users-all"] }); },
     onError: (e: any) => toast.error(e.message),
   });
 
@@ -55,7 +55,7 @@ function UsersPage() {
             <form onSubmit={(e) => { e.preventDefault(); m.mutate(); }} className="space-y-3">
               <div><Label>Full name</Label><Input required value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></div>
               <div><Label>Email</Label><Input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-              <p className="text-xs text-muted-foreground">An invitation email will be sent so they can set their own password.</p>
+              <p className="text-xs text-muted-foreground">A welcome email will be sent with the App Store link and a temporary password (<span className="font-mono text-foreground">Titan!2026</span>). They'll be prompted to set their own password on first sign-in.</p>
               <div>
                 <Label>Role</Label>
                 <Select value={form.role} onValueChange={(v: any) => setForm({ ...form, role: v })}>
