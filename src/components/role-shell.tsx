@@ -85,8 +85,7 @@ export function RoleShell({ items, brandSubtitle, children }: { items: NavItem[]
 
       {/* Mobile header */}
       <header
-        className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-sidebar/95 backdrop-blur px-4 pb-2 md:hidden"
-        style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.25rem)" }}
+        className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-sidebar/95 backdrop-blur px-4 py-2 md:hidden"
       >
         <div className="flex items-center gap-2">
           <img src="/icon-512.png" alt="Titan Solutions" className="h-7 w-7 object-contain" />
@@ -106,8 +105,8 @@ export function RoleShell({ items, brandSubtitle, children }: { items: NavItem[]
       </main>
 
       {/* Mobile bottom tab bar */}
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-sidebar/95 backdrop-blur md:hidden"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-sidebar/95 backdrop-blur md:hidden">
+
         <div className="grid" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
           {items.map((it) => (
             <Link key={it.to} to={it.to}
