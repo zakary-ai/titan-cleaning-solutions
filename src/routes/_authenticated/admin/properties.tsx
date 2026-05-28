@@ -1,13 +1,25 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listProperties, createProperty, updateProperty, assignUser, unassignUserFromProperty } from "@/lib/properties.functions";
+import {
+  listProperties,
+  createProperty,
+  updateProperty,
+  assignUser,
+  unassignUserFromProperty,
+} from "@/lib/properties.functions";
 import { inviteClientToProperty, listAssignableUsers } from "@/lib/invite.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Plus, MapPin, UserPlus, Users, Shield, ShieldPlus, Clock, Zap } from "lucide-react";
 import { useState } from "react";
@@ -61,15 +73,30 @@ function PropertiesPage() {
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>Create property</DialogTitle></DialogHeader>
-            <form onSubmit={(e) => { e.preventDefault(); m.mutate(); }} className="space-y-3">
+            <DialogHeader>
+              <DialogTitle>Create property</DialogTitle>
+            </DialogHeader>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                m.mutate();
+              }}
+              className="space-y-3"
+            >
               <div>
                 <Label>Property name</Label>
-                <Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                <Input
+                  required
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                />
               </div>
               <div>
                 <Label>Property address</Label>
-                <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+                <Input
+                  value={form.address}
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                />
               </div>
               <div>
                 <Label>Service areas</Label>
@@ -112,8 +139,7 @@ function PropertyCard({ property: p }: { property: any }) {
   const [time, setTime] = useState(initial);
   const tz = p.daily_report_timezone ?? "America/New_York";
   const save = useMutation({
-    mutationFn: (value: string) =>
-      update({ data: { id: p.id, daily_report_time: `${value}:00` } }),
+    mutationFn: (value: string) => update({ data: { id: p.id, daily_report_time: `${value}:00` } }),
     onSuccess: () => {
       toast.success("Daily report time updated");
       qc.invalidateQueries({ queryKey: ["properties"] });
@@ -144,7 +170,9 @@ function PropertyCard({ property: p }: { property: any }) {
             onChange={(e) => setTime(e.target.value)}
             className="h-9 w-32"
           />
-          <span className="text-xs text-muted-foreground">{tz === "America/New_York" ? "EST" : tz}</span>
+          <span className="text-xs text-muted-foreground">
+            {tz === "America/New_York" ? "EST" : tz}
+          </span>
           <Button
             size="sm"
             variant="outline"
@@ -163,14 +191,46 @@ function PropertyCard({ property: p }: { property: any }) {
       <InstantReleaseToggle property={p} />
 
       <div className="mt-4 grid grid-cols-2 gap-2">
-        <InviteDialog propertyId={p.id} propertyName={p.name} role="client"
-          trigger={<Button size="sm" variant="outline"><UserPlus className="mr-2 h-3.5 w-3.5" /> Add user</Button>} />
-        <AssignDialog propertyId={p.id} propertyName={p.name} role="client"
-          trigger={<Button size="sm" variant="outline"><Users className="mr-2 h-3.5 w-3.5" /> Assign user</Button>} />
-        <InviteDialog propertyId={p.id} propertyName={p.name} role="supervisor"
-          trigger={<Button size="sm" variant="outline"><ShieldPlus className="mr-2 h-3.5 w-3.5" /> Add supervisor</Button>} />
-        <AssignDialog propertyId={p.id} propertyName={p.name} role="supervisor"
-          trigger={<Button size="sm" variant="outline"><Shield className="mr-2 h-3.5 w-3.5" /> Assign supervisor</Button>} />
+        <InviteDialog
+          propertyId={p.id}
+          propertyName={p.name}
+          role="client"
+          trigger={
+            <Button size="sm" variant="outline">
+              <UserPlus className="mr-2 h-3.5 w-3.5" /> Add user
+            </Button>
+          }
+        />
+        <AssignDialog
+          propertyId={p.id}
+          propertyName={p.name}
+          role="client"
+          trigger={
+            <Button size="sm" variant="outline">
+              <Users className="mr-2 h-3.5 w-3.5" /> Assign user
+            </Button>
+          }
+        />
+        <InviteDialog
+          propertyId={p.id}
+          propertyName={p.name}
+          role="supervisor"
+          trigger={
+            <Button size="sm" variant="outline">
+              <ShieldPlus className="mr-2 h-3.5 w-3.5" /> Add supervisor
+            </Button>
+          }
+        />
+        <AssignDialog
+          propertyId={p.id}
+          propertyName={p.name}
+          role="supervisor"
+          trigger={
+            <Button size="sm" variant="outline">
+              <Shield className="mr-2 h-3.5 w-3.5" /> Assign supervisor
+            </Button>
+          }
+        />
       </div>
     </div>
   );
@@ -194,7 +254,8 @@ function InstantReleaseToggle({ property: p }: { property: any }) {
           <Zap className="h-3.5 w-3.5" /> Instant client release
         </Label>
         <p className="mt-1 text-[11px] text-muted-foreground">
-          When on, uploads appear in the client account immediately. When off, they appear the next day at the send time above.
+          When on, uploads appear in the client account immediately. When off, they appear the next
+          day at the send time above.
         </p>
       </div>
       <Switch
@@ -206,18 +267,31 @@ function InstantReleaseToggle({ property: p }: { property: any }) {
   );
 }
 
-function InviteDialog({ propertyId, propertyName, role, trigger }: {
-  propertyId: string; propertyName: string; role: "client" | "supervisor"; trigger: React.ReactNode;
+function InviteDialog({
+  propertyId,
+  propertyName,
+  role,
+  trigger,
+}: {
+  propertyId: string;
+  propertyName: string;
+  role: "client" | "supervisor";
+  trigger: React.ReactNode;
 }) {
   const invite = useServerFn(inviteClientToProperty);
+  const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ email: "", full_name: "" });
   const m = useMutation({
-    mutationFn: () => invite({ data: { property_id: propertyId, email: form.email, full_name: form.full_name, role } }),
+    mutationFn: () =>
+      invite({
+        data: { property_id: propertyId, email: form.email, full_name: form.full_name, role },
+      }),
     onSuccess: () => {
-      toast.success("Invitation sent");
+      toast.success("Account created and email sent");
       setOpen(false);
       setForm({ email: "", full_name: "" });
+      qc.invalidateQueries({ queryKey: ["assignable-users", role, propertyId] });
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -226,21 +300,41 @@ function InviteDialog({ propertyId, propertyName, role, trigger }: {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>Add {label} to {propertyName}</DialogTitle></DialogHeader>
-        <form onSubmit={(e) => { e.preventDefault(); m.mutate(); }} className="space-y-3">
+        <DialogHeader>
+          <DialogTitle>
+            Add {label} to {propertyName}
+          </DialogTitle>
+        </DialogHeader>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            m.mutate();
+          }}
+          className="space-y-3"
+        >
           <div>
             <Label>Full name</Label>
-            <Input required value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+            <Input
+              required
+              value={form.full_name}
+              onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+            />
           </div>
           <div>
             <Label>Email</Label>
-            <Input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <Input
+              type="email"
+              required
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
           </div>
           <p className="text-xs text-muted-foreground">
-            We'll email them an invitation to set up their account and download the app.
+            This creates their {role === "client" ? "client" : "supervisor"} account with the
+            temporary password Titan!2026 and sends the App Store download email.
           </p>
           <Button type="submit" disabled={m.isPending} className="w-full">
-            {m.isPending ? "Sending…" : "Send invitation"}
+            {m.isPending ? "Creating…" : "Create account"}
           </Button>
         </form>
       </DialogContent>
@@ -248,8 +342,16 @@ function InviteDialog({ propertyId, propertyName, role, trigger }: {
   );
 }
 
-function AssignDialog({ propertyId, propertyName, role, trigger }: {
-  propertyId: string; propertyName: string; role: "client" | "supervisor"; trigger: React.ReactNode;
+function AssignDialog({
+  propertyId,
+  propertyName,
+  role,
+  trigger,
+}: {
+  propertyId: string;
+  propertyName: string;
+  role: "client" | "supervisor";
+  trigger: React.ReactNode;
 }) {
   const list = useServerFn(listAssignableUsers);
   const assign = useServerFn(assignUser);
@@ -262,7 +364,8 @@ function AssignDialog({ propertyId, propertyName, role, trigger }: {
     enabled: open,
   });
   const m = useMutation({
-    mutationFn: (userId: string) => assign({ data: { property_id: propertyId, user_id: userId, role_on_property: role } }),
+    mutationFn: (userId: string) =>
+      assign({ data: { property_id: propertyId, user_id: userId, role_on_property: role } }),
     onSuccess: () => {
       toast.success("Assigned");
       refetch();
@@ -271,7 +374,8 @@ function AssignDialog({ propertyId, propertyName, role, trigger }: {
     onError: (e: any) => toast.error(e.message),
   });
   const u = useMutation({
-    mutationFn: (userId: string) => unassign({ data: { user_id: userId, property_id: propertyId } }),
+    mutationFn: (userId: string) =>
+      unassign({ data: { user_id: userId, property_id: propertyId } }),
     onSuccess: () => {
       toast.success("Unassigned");
       refetch();
@@ -284,19 +388,33 @@ function AssignDialog({ propertyId, propertyName, role, trigger }: {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>Assign {label} to {propertyName}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>
+            Assign {label} to {propertyName}
+          </DialogTitle>
+        </DialogHeader>
         <div className="max-h-96 space-y-2 overflow-y-auto">
           {users.length === 0 && (
-            <p className="py-6 text-center text-sm text-muted-foreground">No existing {label} yet.</p>
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              No existing {label} yet.
+            </p>
           )}
           {users.map((usr: any) => (
-            <div key={usr.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+            <div
+              key={usr.id}
+              className="flex items-center justify-between rounded-lg border border-border p-3"
+            >
               <div>
                 <div className="text-sm font-medium">{usr.full_name || usr.email}</div>
                 <div className="text-xs text-muted-foreground">{usr.email}</div>
               </div>
               {usr.assigned ? (
-                <Button size="sm" variant="outline" disabled={u.isPending} onClick={() => u.mutate(usr.id)}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={u.isPending}
+                  onClick={() => u.mutate(usr.id)}
+                >
                   Unassign
                 </Button>
               ) : (
@@ -311,4 +429,3 @@ function AssignDialog({ propertyId, propertyName, role, trigger }: {
     </Dialog>
   );
 }
-
