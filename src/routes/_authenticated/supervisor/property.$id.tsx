@@ -146,9 +146,11 @@ function AreaCard({ area, upload, property_id, service_date, record, updateNotes
         </button>
       )}
       {showMedia && previewUrl && (
-        upload?.file_type === "video"
-          ? <video src={previewUrl} controls playsInline className="mt-2 max-h-64 w-full rounded-md bg-black" />
-          : <img src={previewUrl} alt="" className="mt-2 max-h-64 w-full rounded-md object-cover" />
+        <div className="mt-2 aspect-video overflow-hidden rounded-md bg-secondary">
+          {upload?.file_type === "video"
+            ? <video src={previewUrl} controls playsInline className="h-full w-full object-cover bg-black" />
+            : <img src={previewUrl} alt="" className="h-full w-full object-cover" />}
+        </div>
       )}
 
       <Textarea className="mt-3" rows={2} placeholder="Notes (optional)…" value={notes}
