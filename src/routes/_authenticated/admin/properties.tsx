@@ -210,6 +210,7 @@ function InviteDialog({ propertyId, propertyName, role, trigger }: {
   propertyId: string; propertyName: string; role: "client" | "supervisor"; trigger: React.ReactNode;
 }) {
   const invite = useServerFn(inviteClientToProperty);
+  const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ email: "", full_name: "" });
   const m = useMutation({
