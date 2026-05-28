@@ -1,4 +1,108 @@
+import * as React from 'react'
+import { render } from '@react-email/components'
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { template as welcomeTemplate } from "@/lib/email-templates/welcome-app-download";
+
+const TEMP_PASSWORD = "Titan!2026";
+const SITE_NAME = "Titan Solutions";
+const SENDER_DOMAIN = "notify.titansolutionsco.com";
+const FROM_DOMAIN = "titansolutionsco.com";
+
+async function sendWelcomeEmail(input: {
+  email: string;
+  full_name: string;
+  role: "admin" | "supervisor" | "client";
+}) {
+  try {
+    const props = { fullName: input.full_name, email: input.email, role: input.role };
+    const element = React.createElement(welcomeTemplate.component, props);
+    const html = await render(element);
+    const text = await render(element, { plainText: true });
+    const subject =
+      typeof welcomeTemplate.subject === "function"
+        ? welcomeTemplate.subject(props)
+        : welcomeTemplate.subject;
+
+    const messageId = crypto.randomUUID();
+
+    await supabaseAdmin.from("email_send_log").insert({
+      message_id: messageId,
+      template_name: "welcome-app-download",
+      recipient_email: input.email,
+      status: "pending",
+    });
+
+    const { error: enqueueError } = await supabaseAdmin.rpc("enqueue_email", {
+      queue_name: "transactional_emails",
+      payload: {
+        message_id: messageId,
+        to: input.email,
+        from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+        sender_domain: SENDER_DOMAIN,
+        subject,
+        html,
+        text,
+        purpose: "transactional",
+        label: "welcome-app-download",
+        idempotency_key: `welcome-${input.email}`,
+        queued_at: new Date().toISOString(),
+      },
+    });
+
+    if (enqueueError) {
+      console.error("Failed to enqueue welcome email", enqueueError);
+      await supabaseAdmin.from("email_send_log").insert({
+        message_id: messageId,
+        template_name: "welcome-app-download",
+        recipient_email: input.email,
+        status: "failed",
+        error_message: enqueueError.message,
+      });
+    }
+  } catch (err) {
+    // Don't fail user creation if email send fails — just log.
+    console.error("sendWelcomeEmail failed", err);
+  }
+}
+
+async function createOrGetUser(input: {
+  email: string;
+  full_name: string;
+  role: "admin" | "supervisor" | "client";
+  organization_name?: string | null;
+}) {
+  // Try to create the user with the temporary password and confirmed email
+  // (so they can sign in immediately from the app).
+  const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
+    email: input.email,
+    password: TEMP_PASSWORD,
+    email_confirm: true,
+    user_metadata: {
+      full_name: input.full_name,
+      organization_name: input.organization_name ?? null,
+      invited_role: input.role,
+      password_set: false,
+    },
+  });
+
+  if (created?.user) {
+    return { userId: created.user.id, isNew: true };
+  }
+
+  // If user already exists, look them up by email.
+  const msg = createErr?.message?.toLowerCase() ?? "";
+  if (createErr && (msg.includes("already") || msg.includes("registered") || msg.includes("exists"))) {
+    const { data: existing } = await supabaseAdmin
+      .from("profiles")
+      .select("id")
+      .eq("email", input.email)
+      .maybeSingle();
+    if (existing) return { userId: existing.id, isNew: false };
+  }
+
+  if (createErr) throw new Error(createErr.message);
+  throw new Error("Failed to create user");
+}
 
 export async function inviteUserAdmin(input: {
   email: string;
@@ -7,26 +111,7 @@ export async function inviteUserAdmin(input: {
   organization_name?: string | null;
   redirect_to?: string | null;
 }) {
-  let userId: string | null = null;
-  const { data: invited, error: inviteErr } =
-    await supabaseAdmin.auth.admin.inviteUserByEmail(input.email, {
-      data: {
-        full_name: input.full_name,
-        organization_name: input.organization_name ?? null,
-        invited_role: input.role,
-      },
-      ...(input.redirect_to ? { redirectTo: input.redirect_to } : {}),
-    });
-
-  if (invited?.user) {
-    userId = invited.user.id;
-  } else if (inviteErr) {
-    const { data: existing } = await supabaseAdmin
-      .from("profiles").select("id").eq("email", input.email).maybeSingle();
-    if (!existing) throw new Error(inviteErr.message);
-    userId = existing.id;
-  }
-  if (!userId) throw new Error("Failed to invite user");
+  const { userId, isNew } = await createOrGetUser(input);
 
   await supabaseAdmin.from("profiles").update({
     full_name: input.full_name,
@@ -41,18 +126,13 @@ export async function inviteUserAdmin(input: {
     if (roleError) throw new Error(roleError.message);
   }
 
+  if (isNew) {
+    await sendWelcomeEmail({ email: input.email, full_name: input.full_name, role: input.role });
+  }
+
   return { user_id: userId, email: input.email };
 }
 
-/**
- * Invite a client user for a given property.
- * - Uses Supabase Auth invite (sends invitation email via the configured auth email sender).
- * - If the user already exists, we re-use them.
- * - Assigns the `client` role and creates a property_assignment row.
- *
- * This is the basic foundation: the actual email body is the default Supabase
- * "Invite user" template, which we can customize later.
- */
 export async function inviteUserForProperty(input: {
   property_id: string;
   email: string;
@@ -67,30 +147,12 @@ export async function inviteUserForProperty(input: {
     .maybeSingle();
   if (!property) throw new Error("Property not found");
 
-  let userId: string | null = null;
-  const { data: invited, error: inviteErr } =
-    await supabaseAdmin.auth.admin.inviteUserByEmail(input.email, {
-      data: {
-        full_name: input.full_name,
-        organization_name: input.role === "client" ? property.client_organization : null,
-        invited_for_property: property.name,
-        invited_role: input.role,
-      },
-      ...(input.redirect_to ? { redirectTo: input.redirect_to } : {}),
-    });
-
-  if (invited?.user) {
-    userId = invited.user.id;
-  } else if (inviteErr) {
-    const { data: existing } = await supabaseAdmin
-      .from("profiles")
-      .select("id")
-      .eq("email", input.email)
-      .maybeSingle();
-    if (!existing) throw new Error(inviteErr.message);
-    userId = existing.id;
-  }
-  if (!userId) throw new Error("Failed to invite user");
+  const { userId, isNew } = await createOrGetUser({
+    email: input.email,
+    full_name: input.full_name,
+    role: input.role,
+    organization_name: input.role === "client" ? property.client_organization : null,
+  });
 
   await supabaseAdmin.from("profiles").update({
     full_name: input.full_name,
@@ -114,6 +176,10 @@ export async function inviteUserForProperty(input: {
     if (assignErr) throw new Error(assignErr.message);
   }
 
+  if (isNew) {
+    await sendWelcomeEmail({ email: input.email, full_name: input.full_name, role: input.role });
+  }
+
   return { user_id: userId, email: input.email };
 }
 
@@ -131,4 +197,3 @@ export async function listUsersByRoleAdmin(role: "client" | "supervisor", proper
   const assignedSet = new Set((assigned ?? []).map((a) => a.user_id));
   return (profiles ?? []).map((p) => ({ ...p, assigned: assignedSet.has(p.id) }));
 }
-
