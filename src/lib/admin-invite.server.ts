@@ -8,12 +8,72 @@ const SITE_NAME = "Titan Solutions";
 const SENDER_DOMAIN = "notify.titansolutionsco.com";
 const FROM_DOMAIN = "titansolutionsco.com";
 
+type AppRole = "admin" | "supervisor" | "client";
+
+function generateToken() {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function getOrCreateUnsubscribeToken(email: string) {
+  const normalizedEmail = email.toLowerCase();
+
+  const { data: suppressed, error: suppressionError } = await supabaseAdmin
+    .from("suppressed_emails")
+    .select("id")
+    .eq("email", normalizedEmail)
+    .maybeSingle();
+  if (suppressionError) throw new Error(suppressionError.message);
+  if (suppressed) return null;
+
+  const { data: existingToken, error: tokenLookupError } = await supabaseAdmin
+    .from("email_unsubscribe_tokens")
+    .select("token, used_at")
+    .eq("email", normalizedEmail)
+    .maybeSingle();
+  if (tokenLookupError) throw new Error(tokenLookupError.message);
+  if (existingToken?.token && !existingToken.used_at) return existingToken.token;
+  if (existingToken?.used_at) return null;
+
+  const token = generateToken();
+  const { error: tokenError } = await supabaseAdmin
+    .from("email_unsubscribe_tokens")
+    .upsert({ token, email: normalizedEmail }, { onConflict: "email", ignoreDuplicates: true });
+  if (tokenError) throw new Error(tokenError.message);
+
+  const { data: storedToken, error: readBackError } = await supabaseAdmin
+    .from("email_unsubscribe_tokens")
+    .select("token")
+    .eq("email", normalizedEmail)
+    .maybeSingle();
+  if (readBackError || !storedToken?.token) {
+    throw new Error(readBackError?.message ?? "Failed to create unsubscribe token");
+  }
+
+  return storedToken.token;
+}
+
 async function sendWelcomeEmail(input: {
   email: string;
   full_name: string;
-  role: "admin" | "supervisor" | "client";
+  role: AppRole;
 }) {
+  const messageId = crypto.randomUUID();
   try {
+    const unsubscribeToken = await getOrCreateUnsubscribeToken(input.email);
+    if (!unsubscribeToken) {
+      await supabaseAdmin.from("email_send_log").insert({
+        message_id: messageId,
+        template_name: "welcome-app-download",
+        recipient_email: input.email,
+        status: "suppressed",
+      });
+      return;
+    }
+
     const props = { fullName: input.full_name, email: input.email, role: input.role };
     const element = React.createElement(welcomeTemplate.component, props);
     const html = await render(element);
@@ -22,8 +82,6 @@ async function sendWelcomeEmail(input: {
       typeof welcomeTemplate.subject === "function"
         ? welcomeTemplate.subject(props)
         : welcomeTemplate.subject;
-
-    const messageId = crypto.randomUUID();
 
     await supabaseAdmin.from("email_send_log").insert({
       message_id: messageId,
@@ -44,7 +102,8 @@ async function sendWelcomeEmail(input: {
         text,
         purpose: "transactional",
         label: "welcome-app-download",
-        idempotency_key: `welcome-${input.email}`,
+        idempotency_key: `welcome-${input.email}-${messageId}`,
+        unsubscribe_token: unsubscribeToken,
         queued_at: new Date().toISOString(),
       },
     });
