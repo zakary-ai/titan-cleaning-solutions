@@ -251,7 +251,7 @@ function SpecialProjectCard({
   return (
     <div className="overflow-hidden rounded-xl bg-card gold-border">
       <div className="aspect-video bg-secondary">
-        {url && sp.file_type === "video" && <video src={url} controls playsInline className="h-full w-full object-cover" />}
+        {url && sp.file_type === "video" && <video src={url} controls playsInline {...({ "webkit-playsinline": "true" } as any)} className="h-full w-full object-cover" />}
         {url && sp.file_type === "image" && <img src={url} alt={sp.caption} className="h-full w-full object-cover" />}
         {!url && <div className="flex h-full items-center justify-center text-xs text-muted-foreground">Loading…</div>}
       </div>
