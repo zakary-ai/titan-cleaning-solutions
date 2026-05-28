@@ -85,7 +85,8 @@ export function RoleShell({ items, brandSubtitle, children }: { items: NavItem[]
 
       {/* Mobile header */}
       <header
-        className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-sidebar/95 backdrop-blur px-4 py-2 md:hidden"
+        className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-sidebar/95 backdrop-blur px-4 pb-2 md:hidden"
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.25rem)" }}
       >
         <div className="flex items-center gap-2">
           <img src="/icon-512.png" alt="Titan Solutions" className="h-7 w-7 object-contain" />
