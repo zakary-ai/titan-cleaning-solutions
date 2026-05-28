@@ -11,7 +11,7 @@ const config: CapacitorConfig = {
     cleartext: false,
   },
   ios: {
-    contentInset: "always",
+    contentInset: "never",
     backgroundColor: "#0b0b0b",
     limitsNavigationsToAppBoundDomains: false,
   },
