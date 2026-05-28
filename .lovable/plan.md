@@ -1,15 +1,8 @@
-I’ll make the spacing change in the places the phone build actually uses, not just the web config.
+The header is overlapping the iPhone's Dynamic Island / status bar because all top padding was removed. The footer is correctly placed and will not change.
 
 Plan:
-1. Update the mobile shell layout so the header starts at the green top line by removing the extra safe-area/padding above the header content.
-2. Move the bottom tab bar down toward the green bottom line by reducing/removing the extra safe-area padding that is keeping it too high.
-3. Sync the iOS Capacitor config so the native app uses `contentInset: "never"` in both the source config and the generated iOS config file.
-4. Update the iOS app version to `1.2` in `Info.plist` and the Xcode project marketing version.
-5. Verify the changed files so the phone rebuild will pick up the corrected header/footer positioning and version number.
+1. `src/components/role-shell.tsx` — Add `env(safe-area-inset-top)` padding back to the mobile `<header>` so it sits just below the Dynamic Island. Leave the bottom `<nav>` exactly as it is now.
+2. `ios/App/App/Info.plist` — Update `CFBundleShortVersionString` from `1.2` to `1.3`.
+3. `ios/App/App.xcodeproj/project.pbxproj` — Update `MARKETING_VERSION` from `1.2` to `1.3` in both Debug and Release configurations.
 
-Technical files I expect to touch:
-- `src/components/role-shell.tsx`
-- `capacitor.config.ts`
-- `ios/App/App/capacitor.config.json`
-- `ios/App/App/Info.plist`
-- `ios/App/App.xcodeproj/project.pbxproj`
+Technical detail: the header style will become `paddingTop: calc(env(safe-area-inset-top) + 0.25rem)` while keeping the existing horizontal padding and bottom padding minimal, so content starts immediately below the status bar / Dynamic Island.
