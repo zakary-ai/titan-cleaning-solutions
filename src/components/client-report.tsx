@@ -125,7 +125,15 @@ function AreaCard({ area, upload, property_id }: any) {
     <div className="overflow-hidden rounded-xl bg-card gold-border">
       <div className="aspect-video bg-secondary">
         {url && upload?.file_type === "video" && (
-          <video src={url} controls preload="metadata" className="h-full w-full object-cover bg-black" />
+          <video
+            src={url}
+            controls
+            playsInline
+            // @ts-expect-error legacy iOS attribute
+            webkit-playsinline="true"
+            preload="metadata"
+            className="h-full w-full object-cover bg-black"
+          />
         )}
         {url && upload?.file_type === "image" && <img src={url} alt={area.area_name} className="h-full w-full object-cover" />}
         {!url && (
