@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { MessagesSquare, MessageSquarePlus, CheckCircle2, AlertCircle, Search, X } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -20,13 +20,15 @@ export function ClientReport({ property_id, service_date }: { property_id: strin
     queryFn: () => getReport({ data: { property_id, service_date } }),
   });
 
+  // Hooks MUST be called before any conditional return.
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading report…</p>;
 
   const areas = data?.areas ?? [];
   const uploads = data?.uploads ?? [];
 
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [query, setQuery] = useState("");
   const q = query.trim().toLowerCase();
   const filteredAreas = q
     ? areas.filter((a: any) => a.area_name?.toLowerCase().includes(q))
@@ -87,15 +89,22 @@ function AreaCard({ area, upload, property_id }: any) {
   const sign = useServerFn(signMediaUrl);
   const create = useServerFn(createIssue);
   const qc = useQueryClient();
-  const [url, setUrl] = useState<string | null>(null);
+
+  // Sign the media URL via React Query so the URL stays stable across refetches
+  // (avoids the pause/restart loop caused by re-running an effect every refetch).
+  const filePath: string | undefined = upload?.file_url;
+  const { data: signed } = useQuery({
+    queryKey: ["sign-media", filePath],
+    queryFn: () => sign({ data: { path: filePath! } }),
+    enabled: !!filePath,
+    staleTime: 50 * 60_000,
+    gcTime: 60 * 60_000,
+  });
+  const url = signed?.url ?? null;
+
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ title: "", initial_comment: "" });
   const [submitted, setSubmitted] = useState(false);
-
-  useEffect(() => {
-    if (upload?.file_url) sign({ data: { path: upload.file_url } }).then(({ url }) => setUrl(url));
-    else setUrl(null);
-  }, [upload?.file_url]);
 
   const m = useMutation({
     mutationFn: () => create({ data: {
@@ -115,7 +124,9 @@ function AreaCard({ area, upload, property_id }: any) {
   return (
     <div className="overflow-hidden rounded-xl bg-card gold-border">
       <div className="aspect-video bg-secondary">
-        {url && upload?.file_type === "video" && <video src={url} controls playsInline className="h-full w-full object-cover" />}
+        {url && upload?.file_type === "video" && (
+          <video src={url} controls preload="metadata" className="h-full w-full object-cover bg-black" />
+        )}
         {url && upload?.file_type === "image" && <img src={url} alt={area.area_name} className="h-full w-full object-cover" />}
         {!url && (
           <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
