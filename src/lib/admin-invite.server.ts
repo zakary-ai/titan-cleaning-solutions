@@ -119,8 +119,8 @@ async function sendWelcomeEmail(input: {
       });
     }
   } catch (err) {
-    // Don't fail user creation if email send fails — just log.
     console.error("sendWelcomeEmail failed", err);
+    throw err instanceof Error ? err : new Error("Failed to queue welcome email");
   }
 }
 
