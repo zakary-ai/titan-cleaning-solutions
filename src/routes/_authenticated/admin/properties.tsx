@@ -215,9 +215,10 @@ function InviteDialog({ propertyId, propertyName, role, trigger }: {
   const m = useMutation({
     mutationFn: () => invite({ data: { property_id: propertyId, email: form.email, full_name: form.full_name, role } }),
     onSuccess: () => {
-      toast.success("Invitation sent");
+      toast.success("Account created and email sent");
       setOpen(false);
       setForm({ email: "", full_name: "" });
+      qc.invalidateQueries({ queryKey: ["assignable-users", role, propertyId] });
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -237,10 +238,10 @@ function InviteDialog({ propertyId, propertyName, role, trigger }: {
             <Input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </div>
           <p className="text-xs text-muted-foreground">
-            We'll email them an invitation to set up their account and download the app.
+            This creates their {role === "client" ? "client" : "supervisor"} account with the temporary password Titan!2026 and sends the App Store download email.
           </p>
           <Button type="submit" disabled={m.isPending} className="w-full">
-            {m.isPending ? "Sending…" : "Send invitation"}
+            {m.isPending ? "Creating…" : "Create account"}
           </Button>
         </form>
       </DialogContent>
