@@ -38,6 +38,7 @@ import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminPropertiesRouteImport } from './routes/_authenticated/admin/properties'
 import { Route as AuthenticatedAdminIssuesRouteImport } from './routes/_authenticated/admin/issues'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin/analytics'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as AuthenticatedSupervisorPropertyIdRouteImport } from './routes/_authenticated/supervisor/property.$id'
 import { Route as AuthenticatedClientPropertyIdRouteImport } from './routes/_authenticated/client/property.$id'
 import { Route as AuthenticatedAdminPropertiesIdRouteImport } from './routes/_authenticated/admin/properties.$id'
@@ -197,6 +198,12 @@ const AuthenticatedAdminAnalyticsRoute =
     path: '/analytics',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedSupervisorPropertyIdRoute =
   AuthenticatedSupervisorPropertyIdRouteImport.update({
     id: '/property/$id',
@@ -254,6 +261,7 @@ export interface FileRoutesByFullPath {
   '/admin/properties/$id': typeof AuthenticatedAdminPropertiesIdRoute
   '/client/property/$id': typeof AuthenticatedClientPropertyIdRoute
   '/supervisor/property/$id': typeof AuthenticatedSupervisorPropertyIdRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/admin/property/$id/view': typeof AuthenticatedAdminPropertyIdViewRoute
 }
 export interface FileRoutesByTo {
@@ -283,6 +291,7 @@ export interface FileRoutesByTo {
   '/admin/properties/$id': typeof AuthenticatedAdminPropertiesIdRoute
   '/client/property/$id': typeof AuthenticatedClientPropertyIdRoute
   '/supervisor/property/$id': typeof AuthenticatedSupervisorPropertyIdRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/admin/property/$id/view': typeof AuthenticatedAdminPropertyIdViewRoute
 }
 export interface FileRoutesById {
@@ -319,6 +328,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/properties/$id': typeof AuthenticatedAdminPropertiesIdRoute
   '/_authenticated/client/property/$id': typeof AuthenticatedClientPropertyIdRoute
   '/_authenticated/supervisor/property/$id': typeof AuthenticatedSupervisorPropertyIdRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/_authenticated/admin/property/$id/view': typeof AuthenticatedAdminPropertyIdViewRoute
 }
 export interface FileRouteTypes {
@@ -355,6 +365,7 @@ export interface FileRouteTypes {
     | '/admin/properties/$id'
     | '/client/property/$id'
     | '/supervisor/property/$id'
+    | '/lovable/email/queue/process'
     | '/admin/property/$id/view'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -384,6 +395,7 @@ export interface FileRouteTypes {
     | '/admin/properties/$id'
     | '/client/property/$id'
     | '/supervisor/property/$id'
+    | '/lovable/email/queue/process'
     | '/admin/property/$id/view'
   id:
     | '__root__'
@@ -419,6 +431,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/properties/$id'
     | '/_authenticated/client/property/$id'
     | '/_authenticated/supervisor/property/$id'
+    | '/lovable/email/queue/process'
     | '/_authenticated/admin/property/$id/view'
   fileRoutesById: FileRoutesById
 }
@@ -431,6 +444,7 @@ export interface RootRouteChildren {
   PendingRoute: typeof PendingRoute
   PrivacyRoute: typeof PrivacyRoute
   SupportRoute: typeof SupportRoute
+  LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -638,6 +652,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAnalyticsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/supervisor/property/$id': {
       id: '/_authenticated/supervisor/property/$id'
       path: '/property/$id'
@@ -800,7 +821,18 @@ const rootRouteChildren: RootRouteChildren = {
   PendingRoute: PendingRoute,
   PrivacyRoute: PrivacyRoute,
   SupportRoute: SupportRoute,
+  LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
