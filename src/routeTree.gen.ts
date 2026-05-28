@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PendingRouteImport } from './routes/pending'
@@ -50,6 +51,11 @@ import { Route as AuthenticatedClientPropertyIdRouteImport } from './routes/_aut
 import { Route as AuthenticatedAdminPropertiesIdRouteImport } from './routes/_authenticated/admin/properties.$id'
 import { Route as AuthenticatedAdminPropertyIdViewRouteImport } from './routes/_authenticated/admin/property.$id.view'
 
+const UnsubscribeRoute = UnsubscribeRouteImport.update({
+  id: '/unsubscribe',
+  path: '/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
   path: '/support',
@@ -275,6 +281,7 @@ export interface FileRoutesByFullPath {
   '/pending': typeof PendingRoute
   '/privacy': typeof PrivacyRoute
   '/support': typeof SupportRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/client': typeof AuthenticatedClientRouteWithChildren
   '/supervisor': typeof AuthenticatedSupervisorRouteWithChildren
@@ -315,6 +322,7 @@ export interface FileRoutesByTo {
   '/pending': typeof PendingRoute
   '/privacy': typeof PrivacyRoute
   '/support': typeof SupportRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/demo': typeof DemoIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
@@ -354,6 +362,7 @@ export interface FileRoutesById {
   '/pending': typeof PendingRoute
   '/privacy': typeof PrivacyRoute
   '/support': typeof SupportRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/client': typeof AuthenticatedClientRouteWithChildren
   '/_authenticated/supervisor': typeof AuthenticatedSupervisorRouteWithChildren
@@ -397,6 +406,7 @@ export interface FileRouteTypes {
     | '/pending'
     | '/privacy'
     | '/support'
+    | '/unsubscribe'
     | '/admin'
     | '/client'
     | '/supervisor'
@@ -437,6 +447,7 @@ export interface FileRouteTypes {
     | '/pending'
     | '/privacy'
     | '/support'
+    | '/unsubscribe'
     | '/email/unsubscribe'
     | '/demo'
     | '/admin/analytics'
@@ -475,6 +486,7 @@ export interface FileRouteTypes {
     | '/pending'
     | '/privacy'
     | '/support'
+    | '/unsubscribe'
     | '/_authenticated/admin'
     | '/_authenticated/client'
     | '/_authenticated/supervisor'
@@ -518,6 +530,7 @@ export interface RootRouteChildren {
   PendingRoute: typeof PendingRoute
   PrivacyRoute: typeof PrivacyRoute
   SupportRoute: typeof SupportRoute
+  UnsubscribeRoute: typeof UnsubscribeRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -529,6 +542,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/unsubscribe': {
+      id: '/unsubscribe'
+      path: '/unsubscribe'
+      fullPath: '/unsubscribe'
+      preLoaderRoute: typeof UnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/support': {
       id: '/support'
       path: '/support'
@@ -943,6 +963,7 @@ const rootRouteChildren: RootRouteChildren = {
   PendingRoute: PendingRoute,
   PrivacyRoute: PrivacyRoute,
   SupportRoute: SupportRoute,
+  UnsubscribeRoute: UnsubscribeRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,

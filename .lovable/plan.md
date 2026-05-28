@@ -1,54 +1,69 @@
-## Goal
+## Plan: App Store Download Emails + First-Login Password Reset
 
-When an admin creates a supervisor or client account, the new user receives a branded email containing:
-- App Store download link (https://apps.apple.com/us/app/titan-solutions/id6772334128)
-- Their login email
-- A temporary password: **Titan!2026**
+### Summary
+Replace the web-based invite flow with an App Store download flow. When an admin creates a supervisor or client account, the user receives an email prompting them to download the Titan Solutions iOS app, log in with a temporary password (Titan!2026), and set their own password on first login.
 
-On their first login, the app forces them to set a new password before they can use it.
+### Technical Details
 
-## How it will work
+#### 1. Fix existing build errors
+The email scaffolding created `renderAsync` imports, but `@react-email/components` v1.0.12 exports `render` instead. Fix in 4 files:
+- `src/routes/lovable/email/auth/webhook.ts`
+- `src/routes/lovable/email/auth/preview.ts`
+- `src/routes/lovable/email/transactional/send.ts`
+- `src/routes/lovable/email/transactional/preview.ts`
 
-### 1. Switch admin-create flow from "magic-link invite" to "create with temp password"
+#### 2. Add `password_reset_required` to `profiles` table
+Create a migration to add `password_reset_required boolean NOT NULL DEFAULT false` to the `profiles` table.
 
-Today, `admin-invite.server.ts` calls `supabaseAdmin.auth.admin.inviteUserByEmail(...)`, which sends Supabase's default magic-link invitation (no password). I'll change both `inviteUserAdmin` and `inviteUserForProperty` to:
+#### 3. Change admin invite flow (`src/lib/admin-invite.server.ts`)
+Replace `inviteUserByEmail` with `createUser`:
+- Create the user with email, password `"Titan!2026"`, and `email_confirm: true`
+- Set `password_reset_required = true` in the profile
+- Render the welcome email template and enqueue it directly via `supabaseAdmin.rpc('enqueue_email', ...)` into the `transactional_emails` queue
+- Remove the old `redirect_to` invite link logic
 
-1. Call `supabaseAdmin.auth.admin.createUser({ email, password: "Titan!2026", email_confirm: true, user_metadata: { full_name, organization_name, invited_role, password_set: false } })`.
-2. If the email already exists, reuse the existing user (same fallback as today).
-3. After the user is created and role/property assignment rows are written, send our branded "Welcome" email via the transactional email system.
+#### 4. Create welcome transactional email template (`src/lib/email-templates/welcome-app-download.tsx`)
+Branded Noir & Gold email that includes:
+- "Welcome to Titan Solutions" heading
+- Instructions to download the app from the App Store (link: https://apps.apple.com/us/app/titan-solutions/id6772334128)
+- Temporary password: `Titan!2026`
+- Note that they'll be prompted to set their own password on first login
+- Register in `registry.ts`
 
-The temporary password is stored as a constant on the server (`TEMP_PASSWORD = "Titan!2026"`) and inserted into the email by the template.
+#### 5. Update auth context (`src/hooks/use-auth.tsx`)
+- Load `password_reset_required` from the profile
+- Expose it in the auth context
 
-### 2. Force password reset on first login (already mostly built)
+#### 6. First-login password reset flow
+- In the authenticated layout/route tree, detect when `password_reset_required` is true
+- Show a modal/screen that forces the user to set a new password before they can use the app
+- On successful password update, set `password_reset_required = false` in the profile and refresh the session
 
-`src/components/set-password-prompt.tsx` already pops up a modal that blocks the app until the user sets a password, gated on `user.user_metadata?.password_set === true`. Because the new admin flow stamps `password_set: false` in `user_metadata`, every new supervisor/client will be prompted to change `Titan!2026` to a real password on their first login. No changes needed in that component beyond verifying it is mounted inside the authenticated layout (it already is).
+#### 7. Create unsubscribe page (`src/routes/unsubscribe.tsx`)
+Required by the transactional email scaffolding. Reads token from URL, validates, shows branded confirm button.
 
-### 3. Build the branded welcome email
+#### 8. Fix Vite config for server env vars
+Add `loadEnv` call with empty prefix so `SUPABASE_SERVICE_ROLE_KEY` and `LOVABLE_API_KEY` are available in server routes.
 
-I'll set up Lovable's email infrastructure (the verified domain `notify.conversionlab.company` is already in place) and scaffold the transactional email system. Then I'll add a new template `account-created.tsx` that renders:
+#### 9. Fix `src/start.ts` middleware bypass
+Add guard at top of `errorMiddleware` to skip processing for `/lovable/` and `/email/unsubscribe` routes.
 
-- Titan Solutions header in brand gold/black
-- "Your account is ready" heading
-- Their login email
-- The temporary password `Titan!2026`
-- A primary "Download the app" button linking to the App Store URL
-- A short note: "When you log in for the first time, you'll be asked to choose your own password."
+### Files to modify/create
+- `src/routes/lovable/email/auth/webhook.ts`
+- `src/routes/lovable/email/auth/preview.ts`
+- `src/routes/lovable/email/transactional/send.ts`
+- `src/routes/lovable/email/transactional/preview.ts`
+- `src/lib/admin-invite.server.ts`
+- `src/lib/email-templates/welcome-app-download.tsx`
+- `src/lib/email-templates/registry.ts`
+- `src/hooks/use-auth.tsx`
+- `src/routes/_authenticated.tsx` or layout component (for first-login check)
+- `src/routes/unsubscribe.tsx`
+- `vite.config.ts`
+- `src/start.ts`
+- New migration for `profiles.password_reset_required`
 
-The server-side invite handlers will trigger this template via the existing `send-transactional-email` route, with an idempotency key like `welcome-<user_id>` so retries don't duplicate emails.
-
-### 4. Remove the old `/accept-invite` redirect path
-
-Since new users now log in directly with email + temp password instead of clicking a magic link, the `/accept-invite` page is no longer part of the flow. I'll leave the file in place (harmless) but stop referencing it as a redirect target in the invite functions.
-
-## Files touched
-
-- `src/lib/admin-invite.server.ts` — switch to `admin.createUser` with temp password, set `password_set: false`, trigger welcome email.
-- `src/lib/email-templates/account-created.tsx` *(new)* — branded React Email template.
-- `src/lib/email-templates/registry.ts` — register the new template.
-- `src/lib/email/send.ts` *(new, if not present)* — small client/server helper to POST to `/lovable/email/transactional/send`. Used server-side here.
-- Email infrastructure setup + transactional scaffold tools (one-time, run automatically).
-
-## Things worth confirming before I build
-
-- The temporary password `Titan!2026` will be visible in plain text in the email inbox. That's standard for one-time credentials, and the forced reset on first login mitigates the risk, but flagging it explicitly.
-- Supabase has leaked-password (HIBP) protection that can reject weak passwords on user-initiated changes. `Titan!2026` is set via the admin API (which bypasses HIBP) so the initial create will succeed; the user's chosen replacement will still go through HIBP if it's enabled.
+### Out of scope
+- No changes to the client portal video behavior (already addressed in previous turns)
+- No changes to the admin users UI (form stays the same, only the backend action changes)
+- Marketing/bulk emails remain unsupported
