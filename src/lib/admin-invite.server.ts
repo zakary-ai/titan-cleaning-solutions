@@ -127,7 +127,7 @@ async function sendWelcomeEmail(input: {
 async function createOrGetUser(input: {
   email: string;
   full_name: string;
-  role: "admin" | "supervisor" | "client";
+  role: AppRole;
   organization_name?: string | null;
 }) {
   // Try to create the user with the temporary password and confirmed email
@@ -163,14 +163,43 @@ async function createOrGetUser(input: {
   throw new Error("Failed to create user");
 }
 
+async function setDefaultPasswordAndMetadata(input: {
+  userId: string;
+  email: string;
+  full_name: string;
+  role: AppRole;
+  organization_name?: string | null;
+}) {
+  const { error } = await supabaseAdmin.auth.admin.updateUserById(input.userId, {
+    email: input.email,
+    password: TEMP_PASSWORD,
+    email_confirm: true,
+    user_metadata: {
+      full_name: input.full_name,
+      organization_name: input.organization_name ?? null,
+      invited_role: input.role,
+      password_set: false,
+    },
+  });
+  if (error) throw new Error(error.message);
+}
+
 export async function inviteUserAdmin(input: {
   email: string;
   full_name: string;
-  role: "admin" | "supervisor" | "client";
+  role: AppRole;
   organization_name?: string | null;
   redirect_to?: string | null;
 }) {
-  const { userId, isNew } = await createOrGetUser(input);
+  const { userId } = await createOrGetUser(input);
+
+  await setDefaultPasswordAndMetadata({
+    userId,
+    email: input.email,
+    full_name: input.full_name,
+    role: input.role,
+    organization_name: input.organization_name ?? null,
+  });
 
   await supabaseAdmin.from("profiles").update({
     full_name: input.full_name,
@@ -185,9 +214,7 @@ export async function inviteUserAdmin(input: {
     if (roleError) throw new Error(roleError.message);
   }
 
-  if (isNew) {
-    await sendWelcomeEmail({ email: input.email, full_name: input.full_name, role: input.role });
-  }
+  await sendWelcomeEmail({ email: input.email, full_name: input.full_name, role: input.role });
 
   return { user_id: userId, email: input.email };
 }
