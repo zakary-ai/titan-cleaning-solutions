@@ -18,6 +18,7 @@ import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoIndexRouteImport } from './routes/demo/index'
+import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as DemoClientRouteImport } from './routes/demo/client'
 import { Route as AuthenticatedSupervisorRouteImport } from './routes/_authenticated/supervisor'
 import { Route as AuthenticatedClientRouteImport } from './routes/_authenticated/client'
@@ -26,6 +27,7 @@ import { Route as DemoClientIndexRouteImport } from './routes/demo/client/index'
 import { Route as AuthenticatedSupervisorIndexRouteImport } from './routes/_authenticated/supervisor/index'
 import { Route as AuthenticatedClientIndexRouteImport } from './routes/_authenticated/client/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as DemoClientSpecialsRouteImport } from './routes/demo/client/specials'
 import { Route as DemoClientHistoryRouteImport } from './routes/demo/client/history'
 import { Route as DemoClientCommentsRouteImport } from './routes/demo/client/comments'
@@ -38,6 +40,8 @@ import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminPropertiesRouteImport } from './routes/_authenticated/admin/properties'
 import { Route as AuthenticatedAdminIssuesRouteImport } from './routes/_authenticated/admin/issues'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin/analytics'
+import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
+import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
@@ -90,6 +94,11 @@ const DemoIndexRoute = DemoIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DemoRoute,
 } as any)
+const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
+  id: '/email/unsubscribe',
+  path: '/email/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DemoClientRoute = DemoClientRouteImport.update({
   id: '/client',
   path: '/client',
@@ -131,6 +140,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
+  id: '/lovable/email/suppression',
+  path: '/lovable/email/suppression',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DemoClientSpecialsRoute = DemoClientSpecialsRouteImport.update({
   id: '/specials',
@@ -200,6 +214,18 @@ const AuthenticatedAdminAnalyticsRoute =
     path: '/analytics',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const LovableEmailTransactionalSendRoute =
+  LovableEmailTransactionalSendRouteImport.update({
+    id: '/lovable/email/transactional/send',
+    path: '/lovable/email/transactional/send',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LovableEmailTransactionalPreviewRoute =
+  LovableEmailTransactionalPreviewRouteImport.update({
+    id: '/lovable/email/transactional/preview',
+    path: '/lovable/email/transactional/preview',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LovableEmailQueueProcessRoute =
   LovableEmailQueueProcessRouteImport.update({
     id: '/lovable/email/queue/process',
@@ -253,6 +279,7 @@ export interface FileRoutesByFullPath {
   '/client': typeof AuthenticatedClientRouteWithChildren
   '/supervisor': typeof AuthenticatedSupervisorRouteWithChildren
   '/demo/client': typeof DemoClientRouteWithChildren
+  '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/demo/': typeof DemoIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/issues': typeof AuthenticatedAdminIssuesRoute
@@ -266,6 +293,7 @@ export interface FileRoutesByFullPath {
   '/demo/client/comments': typeof DemoClientCommentsRoute
   '/demo/client/history': typeof DemoClientHistoryRoute
   '/demo/client/specials': typeof DemoClientSpecialsRoute
+  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/client/': typeof AuthenticatedClientIndexRoute
   '/supervisor/': typeof AuthenticatedSupervisorIndexRoute
@@ -276,6 +304,8 @@ export interface FileRoutesByFullPath {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/admin/property/$id/view': typeof AuthenticatedAdminPropertyIdViewRoute
 }
 export interface FileRoutesByTo {
@@ -285,6 +315,7 @@ export interface FileRoutesByTo {
   '/pending': typeof PendingRoute
   '/privacy': typeof PrivacyRoute
   '/support': typeof SupportRoute
+  '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/demo': typeof DemoIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/issues': typeof AuthenticatedAdminIssuesRoute
@@ -298,6 +329,7 @@ export interface FileRoutesByTo {
   '/demo/client/comments': typeof DemoClientCommentsRoute
   '/demo/client/history': typeof DemoClientHistoryRoute
   '/demo/client/specials': typeof DemoClientSpecialsRoute
+  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/client': typeof AuthenticatedClientIndexRoute
   '/supervisor': typeof AuthenticatedSupervisorIndexRoute
@@ -308,6 +340,8 @@ export interface FileRoutesByTo {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/admin/property/$id/view': typeof AuthenticatedAdminPropertyIdViewRoute
 }
 export interface FileRoutesById {
@@ -324,6 +358,7 @@ export interface FileRoutesById {
   '/_authenticated/client': typeof AuthenticatedClientRouteWithChildren
   '/_authenticated/supervisor': typeof AuthenticatedSupervisorRouteWithChildren
   '/demo/client': typeof DemoClientRouteWithChildren
+  '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/demo/': typeof DemoIndexRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/issues': typeof AuthenticatedAdminIssuesRoute
@@ -337,6 +372,7 @@ export interface FileRoutesById {
   '/demo/client/comments': typeof DemoClientCommentsRoute
   '/demo/client/history': typeof DemoClientHistoryRoute
   '/demo/client/specials': typeof DemoClientSpecialsRoute
+  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/client/': typeof AuthenticatedClientIndexRoute
   '/_authenticated/supervisor/': typeof AuthenticatedSupervisorIndexRoute
@@ -347,6 +383,8 @@ export interface FileRoutesById {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/_authenticated/admin/property/$id/view': typeof AuthenticatedAdminPropertyIdViewRoute
 }
 export interface FileRouteTypes {
@@ -363,6 +401,7 @@ export interface FileRouteTypes {
     | '/client'
     | '/supervisor'
     | '/demo/client'
+    | '/email/unsubscribe'
     | '/demo/'
     | '/admin/analytics'
     | '/admin/issues'
@@ -376,6 +415,7 @@ export interface FileRouteTypes {
     | '/demo/client/comments'
     | '/demo/client/history'
     | '/demo/client/specials'
+    | '/lovable/email/suppression'
     | '/admin/'
     | '/client/'
     | '/supervisor/'
@@ -386,6 +426,8 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
+    | '/lovable/email/transactional/preview'
+    | '/lovable/email/transactional/send'
     | '/admin/property/$id/view'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -395,6 +437,7 @@ export interface FileRouteTypes {
     | '/pending'
     | '/privacy'
     | '/support'
+    | '/email/unsubscribe'
     | '/demo'
     | '/admin/analytics'
     | '/admin/issues'
@@ -408,6 +451,7 @@ export interface FileRouteTypes {
     | '/demo/client/comments'
     | '/demo/client/history'
     | '/demo/client/specials'
+    | '/lovable/email/suppression'
     | '/admin'
     | '/client'
     | '/supervisor'
@@ -418,6 +462,8 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
+    | '/lovable/email/transactional/preview'
+    | '/lovable/email/transactional/send'
     | '/admin/property/$id/view'
   id:
     | '__root__'
@@ -433,6 +479,7 @@ export interface FileRouteTypes {
     | '/_authenticated/client'
     | '/_authenticated/supervisor'
     | '/demo/client'
+    | '/email/unsubscribe'
     | '/demo/'
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/issues'
@@ -446,6 +493,7 @@ export interface FileRouteTypes {
     | '/demo/client/comments'
     | '/demo/client/history'
     | '/demo/client/specials'
+    | '/lovable/email/suppression'
     | '/_authenticated/admin/'
     | '/_authenticated/client/'
     | '/_authenticated/supervisor/'
@@ -456,6 +504,8 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
+    | '/lovable/email/transactional/preview'
+    | '/lovable/email/transactional/send'
     | '/_authenticated/admin/property/$id/view'
   fileRoutesById: FileRoutesById
 }
@@ -468,9 +518,13 @@ export interface RootRouteChildren {
   PendingRoute: typeof PendingRoute
   PrivacyRoute: typeof PrivacyRoute
   SupportRoute: typeof SupportRoute
+  EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
+  LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
+  LovableEmailTransactionalSendRoute: typeof LovableEmailTransactionalSendRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -538,6 +592,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoIndexRouteImport
       parentRoute: typeof DemoRoute
     }
+    '/email/unsubscribe': {
+      id: '/email/unsubscribe'
+      path: '/email/unsubscribe'
+      fullPath: '/email/unsubscribe'
+      preLoaderRoute: typeof EmailUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/demo/client': {
       id: '/demo/client'
       path: '/client'
@@ -593,6 +654,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/lovable/email/suppression': {
+      id: '/lovable/email/suppression'
+      path: '/lovable/email/suppression'
+      fullPath: '/lovable/email/suppression'
+      preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/demo/client/specials': {
       id: '/demo/client/specials'
@@ -677,6 +745,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/analytics'
       preLoaderRoute: typeof AuthenticatedAdminAnalyticsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/lovable/email/transactional/send': {
+      id: '/lovable/email/transactional/send'
+      path: '/lovable/email/transactional/send'
+      fullPath: '/lovable/email/transactional/send'
+      preLoaderRoute: typeof LovableEmailTransactionalSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/transactional/preview': {
+      id: '/lovable/email/transactional/preview'
+      path: '/lovable/email/transactional/preview'
+      fullPath: '/lovable/email/transactional/preview'
+      preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/lovable/email/queue/process': {
       id: '/lovable/email/queue/process'
@@ -861,9 +943,13 @@ const rootRouteChildren: RootRouteChildren = {
   PendingRoute: PendingRoute,
   PrivacyRoute: PrivacyRoute,
   SupportRoute: SupportRoute,
+  EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
+  LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
+  LovableEmailTransactionalSendRoute: LovableEmailTransactionalSendRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
