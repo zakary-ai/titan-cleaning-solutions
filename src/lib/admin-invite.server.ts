@@ -233,11 +233,20 @@ export async function inviteUserForProperty(input: {
     .maybeSingle();
   if (!property) throw new Error("Property not found");
 
-  const { userId, isNew } = await createOrGetUser({
+  const organizationName = input.role === "client" ? property.client_organization : null;
+  const { userId } = await createOrGetUser({
     email: input.email,
     full_name: input.full_name,
     role: input.role,
-    organization_name: input.role === "client" ? property.client_organization : null,
+    organization_name: organizationName,
+  });
+
+  await setDefaultPasswordAndMetadata({
+    userId,
+    email: input.email,
+    full_name: input.full_name,
+    role: input.role,
+    organization_name: organizationName,
   });
 
   await supabaseAdmin.from("profiles").update({
@@ -262,9 +271,7 @@ export async function inviteUserForProperty(input: {
     if (assignErr) throw new Error(assignErr.message);
   }
 
-  if (isNew) {
-    await sendWelcomeEmail({ email: input.email, full_name: input.full_name, role: input.role });
-  }
+  await sendWelcomeEmail({ email: input.email, full_name: input.full_name, role: input.role });
 
   return { user_id: userId, email: input.email };
 }
