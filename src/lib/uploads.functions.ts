@@ -45,13 +45,17 @@ export const recordUpload = createServerFn({ method: "POST" })
     notes: z.string().trim().max(2000).optional().nullable(),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    // Replace any existing upload for this area+date by this supervisor (most recent wins)
+    // Replace any existing upload for this area+date by this supervisor (most recent wins),
+    // and clear any "missing" placeholder rows created by a premature Submit.
     const { data: existing } = await context.supabase
-      .from("cleaning_uploads").select("id").eq("area_id", data.area_id)
-      .eq("service_date", data.service_date).eq("supervisor_id", context.userId);
-    if (existing && existing.length > 0) {
+      .from("cleaning_uploads").select("id,supervisor_id,status")
+      .eq("area_id", data.area_id).eq("service_date", data.service_date);
+    const toDelete = (existing ?? []).filter(
+      (r: any) => r.supervisor_id === context.userId || r.status === "missing"
+    );
+    if (toDelete.length > 0) {
       await context.supabase.from("cleaning_uploads").delete()
-        .in("id", existing.map((r: any) => r.id));
+        .in("id", toDelete.map((r: any) => r.id));
     }
     const { data: row, error } = await context.supabase.from("cleaning_uploads").insert({
       ...data,

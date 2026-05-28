@@ -85,7 +85,7 @@ export function RoleShell({ items, brandSubtitle, children }: { items: NavItem[]
 
       {/* Mobile header */}
       <header
-        className="flex items-center justify-between border-b border-border bg-sidebar px-4 py-3 md:hidden"
+        className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-sidebar/95 backdrop-blur px-4 py-3 md:hidden"
         style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)" }}
       >
         <div className="flex items-center gap-2">
@@ -99,7 +99,7 @@ export function RoleShell({ items, brandSubtitle, children }: { items: NavItem[]
       </header>
 
       {/* Content */}
-      <main className="flex-1 pb-20 md:pb-0">
+      <main className="flex-1 pb-24 md:pb-0">
         <div className="mx-auto w-full max-w-6xl px-4 py-6 md:px-8 md:py-10">
           {children}
         </div>

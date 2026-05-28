@@ -36,7 +36,8 @@ export function useMessageNotifications(unreadCount: number, issuesPath: string)
       if (!onIssues) {
         toast(`${delta} new message${delta > 1 ? "s" : ""}`, {
           description: "Tap to open the Comments inbox",
-          action: { label: "View", onClick: () => navigate({ to: issuesPath }) },
+          duration: 3000,
+          onClick: () => navigate({ to: issuesPath }),
         });
         if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted" && document.visibilityState !== "visible") {
           try {
