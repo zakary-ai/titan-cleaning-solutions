@@ -129,8 +129,7 @@ function AreaCard({ area, upload, property_id }: any) {
             src={url}
             controls
             playsInline
-            // @ts-expect-error legacy iOS attribute
-            webkit-playsinline="true"
+            {...({ "webkit-playsinline": "true" } as any)}
             preload="metadata"
             className="h-full w-full object-cover bg-black"
           />
