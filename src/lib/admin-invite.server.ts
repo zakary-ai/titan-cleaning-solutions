@@ -1,5 +1,5 @@
-import * as React from 'react'
-import { render } from '@react-email/components'
+import * as React from "react";
+import { render } from "@react-email/components";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { template as welcomeTemplate } from "@/lib/email-templates/welcome-app-download";
 
@@ -56,11 +56,7 @@ async function getOrCreateUnsubscribeToken(email: string) {
   return storedToken.token;
 }
 
-async function sendWelcomeEmail(input: {
-  email: string;
-  full_name: string;
-  role: AppRole;
-}) {
+async function sendWelcomeEmail(input: { email: string; full_name: string; role: AppRole }) {
   const messageId = crypto.randomUUID();
   try {
     const unsubscribeToken = await getOrCreateUnsubscribeToken(input.email);
@@ -150,7 +146,10 @@ async function createOrGetUser(input: {
 
   // If user already exists, look them up by email.
   const msg = createErr?.message?.toLowerCase() ?? "";
-  if (createErr && (msg.includes("already") || msg.includes("registered") || msg.includes("exists"))) {
+  if (
+    createErr &&
+    (msg.includes("already") || msg.includes("registered") || msg.includes("exists"))
+  ) {
     const { data: existing } = await supabaseAdmin
       .from("profiles")
       .select("id")
@@ -201,15 +200,23 @@ export async function inviteUserAdmin(input: {
     organization_name: input.organization_name ?? null,
   });
 
-  await supabaseAdmin.from("profiles").update({
-    full_name: input.full_name,
-    ...(input.organization_name ? { organization_name: input.organization_name } : {}),
-  }).eq("id", userId);
+  await supabaseAdmin
+    .from("profiles")
+    .update({
+      full_name: input.full_name,
+      ...(input.organization_name ? { organization_name: input.organization_name } : {}),
+    })
+    .eq("id", userId);
 
   const { data: existingRole } = await supabaseAdmin
-    .from("user_roles").select("id").eq("user_id", userId).eq("role", input.role).maybeSingle();
+    .from("user_roles")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("role", input.role)
+    .maybeSingle();
   if (!existingRole) {
-    const { error: roleError } = await supabaseAdmin.from("user_roles")
+    const { error: roleError } = await supabaseAdmin
+      .from("user_roles")
       .insert({ user_id: userId, role: input.role });
     if (roleError) throw new Error(roleError.message);
   }
@@ -249,21 +256,30 @@ export async function inviteUserForProperty(input: {
     organization_name: organizationName,
   });
 
-  await supabaseAdmin.from("profiles").update({
-    full_name: input.full_name,
-    ...(input.role === "client" ? { organization_name: property.client_organization } : {}),
-  }).eq("id", userId);
+  await supabaseAdmin
+    .from("profiles")
+    .update({
+      full_name: input.full_name,
+      ...(input.role === "client" ? { organization_name: property.client_organization } : {}),
+    })
+    .eq("id", userId);
 
   const { data: existingRole } = await supabaseAdmin
     .from("user_roles")
-    .select("id").eq("user_id", userId).eq("role", input.role).maybeSingle();
+    .select("id")
+    .eq("user_id", userId)
+    .eq("role", input.role)
+    .maybeSingle();
   if (!existingRole) {
     await supabaseAdmin.from("user_roles").insert({ user_id: userId, role: input.role });
   }
 
   const { data: existingAssignment } = await supabaseAdmin
     .from("property_assignments")
-    .select("id").eq("user_id", userId).eq("property_id", property.id).maybeSingle();
+    .select("id")
+    .eq("user_id", userId)
+    .eq("property_id", property.id)
+    .maybeSingle();
   if (!existingAssignment) {
     const { error: assignErr } = await supabaseAdmin
       .from("property_assignments")
@@ -278,14 +294,20 @@ export async function inviteUserForProperty(input: {
 
 export async function listUsersByRoleAdmin(role: "client" | "supervisor", propertyId: string) {
   const { data: roleRows, error } = await supabaseAdmin
-    .from("user_roles").select("user_id").eq("role", role);
+    .from("user_roles")
+    .select("user_id")
+    .eq("role", role);
   if (error) throw new Error(error.message);
   const ids = (roleRows ?? []).map((r) => r.user_id);
   if (ids.length === 0) return [];
 
   const [{ data: profiles }, { data: assigned }] = await Promise.all([
     supabaseAdmin.from("profiles").select("id, full_name, email, organization_name").in("id", ids),
-    supabaseAdmin.from("property_assignments").select("user_id").eq("property_id", propertyId).in("user_id", ids),
+    supabaseAdmin
+      .from("property_assignments")
+      .select("user_id")
+      .eq("property_id", propertyId)
+      .in("user_id", ids),
   ]);
   const assignedSet = new Set((assigned ?? []).map((a) => a.user_id));
   return (profiles ?? []).map((p) => ({ ...p, assigned: assignedSet.has(p.id) }));
