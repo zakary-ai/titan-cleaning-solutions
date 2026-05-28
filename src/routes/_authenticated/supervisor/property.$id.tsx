@@ -87,8 +87,18 @@ function AreaCard({ area, upload, property_id, service_date, record, updateNotes
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [notes, setNotes] = useState(upload?.notes ?? "");
+  const [showMedia, setShowMedia] = useState(false);
   const sign = useServerFn(signMediaUrl);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const filePath = upload?.file_url as string | undefined;
+  const { data: signed } = useQuery({
+    queryKey: ["sign-media", filePath],
+    queryFn: () => sign({ data: { path: filePath! } }),
+    enabled: !!filePath && showMedia,
+    staleTime: 50 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+  });
+  const previewUrl = signed?.url ?? null;
 
   const handleFile = async (file: File) => {
     setUploading(true);
@@ -100,18 +110,13 @@ function AreaCard({ area, upload, property_id, service_date, record, updateNotes
       const file_type = file.type.startsWith("video") ? "video" : "image";
       await record({ data: { property_id, area_id: area.id, service_date, file_url: path, file_type, notes } });
       toast.success(`${area.area_name} uploaded`);
+      setShowMedia(true);
       onChange();
     } catch (e: any) {
       toast.error(e.message);
     } finally {
       setUploading(false);
     }
-  };
-
-  const showPreview = async () => {
-    if (!upload?.file_url) return;
-    const { url } = await sign({ data: { path: upload.file_url } });
-    setPreviewUrl(url);
   };
 
   const status = upload?.status ?? "pending";
@@ -136,11 +141,11 @@ function AreaCard({ area, upload, property_id, service_date, record, updateNotes
       </div>
 
       {upload?.file_url && (
-        <button onClick={showPreview} className="mt-3 text-xs text-gold underline-offset-2 hover:underline">
-          View {upload.file_type}
+        <button onClick={() => setShowMedia((s) => !s)} className="mt-3 text-xs text-gold underline-offset-2 hover:underline">
+          {showMedia ? "Hide" : "View"} {upload.file_type}
         </button>
       )}
-      {previewUrl && (
+      {showMedia && previewUrl && (
         upload?.file_type === "video"
           ? <video src={previewUrl} controls playsInline className="mt-2 max-h-64 w-full rounded-md bg-black" />
           : <img src={previewUrl} alt="" className="mt-2 max-h-64 w-full rounded-md object-cover" />
