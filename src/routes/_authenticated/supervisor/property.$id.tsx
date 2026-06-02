@@ -133,7 +133,7 @@ function AreaCard({ area, upload, property_id, service_date, record, updateNotes
             {area.required_upload ? "Required" : "Optional"} · {status}
           </div>
         </div>
-        <input ref={fileRef} type="file" accept="image/*,video/*" capture="environment" className="hidden"
+        <input ref={fileRef} type="file" accept="image/*,video/*" className="hidden"
           onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
         <Button size="sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
           {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Camera className="mr-2 h-4 w-4" /> {upload?.file_url ? "Replace" : "Upload"}</>}
