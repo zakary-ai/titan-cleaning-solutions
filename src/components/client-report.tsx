@@ -125,6 +125,16 @@ function AreaCard({ area, upload, property_id }: any) {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const delMut = useMutation({
+    mutationFn: () => delUpload({ data: { id: upload!.id } }),
+    onSuccess: () => {
+      toast.success("Upload deleted");
+      qc.invalidateQueries({ queryKey: ["client-report"] });
+      qc.invalidateQueries({ queryKey: ["service-dates"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   return (
     <div className="overflow-hidden rounded-xl bg-card gold-border">
       <div className="aspect-video bg-secondary">
