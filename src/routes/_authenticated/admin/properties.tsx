@@ -158,6 +158,15 @@ function PropertyCard({ property: p }: { property: any }) {
     },
     onError: (e: any) => toast.error(e.message),
   });
+  const del = useServerFn(deleteProperty);
+  const remove = useMutation({
+    mutationFn: () => del({ data: { id: p.id } }),
+    onSuccess: () => {
+      toast.success("Property deleted");
+      qc.invalidateQueries({ queryKey: ["properties"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
 
   return (
     <div className="rounded-xl bg-card p-5 gold-border transition hover:gold-glow">
