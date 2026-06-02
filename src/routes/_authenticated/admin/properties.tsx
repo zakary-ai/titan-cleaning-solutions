@@ -33,7 +33,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Plus, MapPin, UserPlus, Users, Shield, ShieldPlus, Clock, Zap } from "lucide-react";
+import { Plus, MapPin, UserPlus, Users, Shield, ShieldPlus, Clock, Zap, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
