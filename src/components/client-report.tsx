@@ -90,6 +90,8 @@ export function ClientReport({ property_id, service_date }: { property_id: strin
 function AreaCard({ area, upload, property_id }: any) {
   const sign = useServerFn(signMediaUrl);
   const create = useServerFn(createIssue);
+  const delUpload = useServerFn(deleteUpload);
+  const { role } = useAuth();
   const qc = useQueryClient();
 
   // Sign the media URL via React Query so the URL stays stable across refetches
