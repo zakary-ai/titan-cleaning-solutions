@@ -67,6 +67,32 @@ export const updateProperty = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const deleteProperty = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await ensureAdmin(context.supabase, context.userId);
+    const sb = context.supabase;
+    const pid = data.id;
+
+    // Delete messages tied to issues on this property first
+    const { data: issueRows } = await sb.from("issues").select("id").eq("property_id", pid);
+    const issueIds = (issueRows ?? []).map((r: any) => r.id);
+    if (issueIds.length > 0) {
+      const { error: msgErr } = await sb.from("messages").delete().in("issue_id", issueIds);
+      if (msgErr) throw new Error(msgErr.message);
+    }
+
+    for (const table of ["issues", "special_projects", "cleaning_uploads", "property_areas", "property_assignments"] as const) {
+      const { error } = await sb.from(table).delete().eq("property_id", pid);
+      if (error) throw new Error(error.message);
+    }
+
+    const { error } = await sb.from("properties").delete().eq("id", pid);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const getProperty = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
