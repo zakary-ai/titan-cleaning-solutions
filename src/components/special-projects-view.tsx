@@ -175,7 +175,6 @@ export function SpecialProjectsManager({ property_id }: { property_id: string })
                 ref={fileRef}
                 type="file"
                 accept="image/*,video/*"
-                capture="environment"
                 className="hidden"
                 onChange={(e) => e.target.files?.[0] && onPickFile(e.target.files[0])}
               />
