@@ -5,6 +5,7 @@ import {
   listProperties,
   createProperty,
   updateProperty,
+  deleteProperty,
   assignUser,
   unassignUserFromProperty,
 } from "@/lib/properties.functions";
@@ -14,6 +15,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -21,7 +33,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Plus, MapPin, UserPlus, Users, Shield, ShieldPlus, Clock, Zap } from "lucide-react";
+import { Plus, MapPin, UserPlus, Users, Shield, ShieldPlus, Clock, Zap, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -146,6 +158,15 @@ function PropertyCard({ property: p }: { property: any }) {
     },
     onError: (e: any) => toast.error(e.message),
   });
+  const del = useServerFn(deleteProperty);
+  const remove = useMutation({
+    mutationFn: () => del({ data: { id: p.id } }),
+    onSuccess: () => {
+      toast.success("Property deleted");
+      qc.invalidateQueries({ queryKey: ["properties"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
 
   return (
     <div className="rounded-xl bg-card p-5 gold-border transition hover:gold-glow">
@@ -232,6 +253,32 @@ function PropertyCard({ property: p }: { property: any }) {
           }
         />
       </div>
+
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button size="sm" variant="outline" className="mt-3 w-full text-destructive hover:bg-destructive/10 hover:text-destructive">
+            <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete property
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {p.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the property along with its areas, assignments, uploads, comments, and special projects. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={remove.isPending}
+              onClick={() => remove.mutate()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {remove.isPending ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
