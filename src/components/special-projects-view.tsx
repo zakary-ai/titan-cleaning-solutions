@@ -10,7 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Link } from "@tanstack/react-router";
-import { Camera, Loader2, Plus, Trash2, MessageSquarePlus, MessagesSquare, Sparkles } from "lucide-react";
+import { Camera, Loader2, Plus, MessageSquarePlus, MessagesSquare, Sparkles } from "lucide-react";
+import { DeleteMenu } from "@/components/delete-menu";
 import { supabase } from "@/integrations/supabase/client";
 import {
   listSpecialProjects,
