@@ -253,6 +253,32 @@ function PropertyCard({ property: p }: { property: any }) {
           }
         />
       </div>
+
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button size="sm" variant="outline" className="mt-3 w-full text-destructive hover:bg-destructive/10 hover:text-destructive">
+            <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete property
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {p.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the property along with its areas, assignments, uploads, comments, and special projects. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={remove.isPending}
+              onClick={() => remove.mutate()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {remove.isPending ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
