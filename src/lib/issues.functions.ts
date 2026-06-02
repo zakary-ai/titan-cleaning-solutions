@@ -2,6 +2,36 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+async function ensureAdmin(supabase: any, userId: string) {
+  const { data, error } = await supabase
+    .from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+  if (error || !data) throw new Error("Forbidden: admin only");
+}
+
+export const deleteIssue = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await ensureAdmin(context.supabase, context.userId);
+    const { error: mErr } = await context.supabase.from("messages").delete().eq("issue_id", data.id);
+    if (mErr) throw new Error(mErr.message);
+    const { error: rErr } = await context.supabase.from("issue_reads").delete().eq("issue_id", data.id);
+    if (rErr) throw new Error(rErr.message);
+    const { error } = await context.supabase.from("issues").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteMessage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await ensureAdmin(context.supabase, context.userId);
+    const { error } = await context.supabase.from("messages").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 // Client creates an issue / comment on an upload
 export const createIssue = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
