@@ -239,7 +239,17 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
                   const sender = m.sender_id ? thread.profiles[m.sender_id] : null;
                   return (
                     <div key={m.id} className="rounded-md bg-secondary p-3">
-                      <div className="text-xs text-gold">{sender?.full_name || sender?.email || "User"}</div>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="text-xs text-gold">{sender?.full_name || sender?.email || "User"}</div>
+                        {canChangeStatus && (
+                          <DeleteMenu
+                            title="Delete this message?"
+                            description="This permanently removes this reply from the thread. This cannot be undone."
+                            pending={delMsgMut.isPending}
+                            onConfirm={() => delMsgMut.mutate(m.id)}
+                          />
+                        )}
+                      </div>
                       {m.body && <div className="mt-1 whitespace-pre-wrap text-sm">{m.body}</div>}
                       {m.attachment_url && <MessageAttachment path={m.attachment_url} />}
                       <div className="mt-1 text-[10px] text-muted-foreground">{format(new Date(m.created_at), "PPp")}</div>
