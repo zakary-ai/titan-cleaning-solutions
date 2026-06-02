@@ -22,7 +22,28 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
   const setStatus = useServerFn(setIssueStatus);
   const markRead = useServerFn(markIssueRead);
   const markAllRead = useServerFn(markAllIssuesRead);
+  const delIssue = useServerFn(deleteIssue);
+  const delMsg = useServerFn(deleteMessage);
   const qc = useQueryClient();
+
+  const delIssueMut = useMutation({
+    mutationFn: (id: string) => delIssue({ data: { id } }),
+    onSuccess: (_d, id) => {
+      toast.success("Comment deleted");
+      if (id === selected) setSelected(null);
+      qc.invalidateQueries({ queryKey: ["issues"] });
+      qc.invalidateQueries({ queryKey: ["unread-issues"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+  const delMsgMut = useMutation({
+    mutationFn: (id: string) => delMsg({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Message deleted");
+      qc.invalidateQueries({ queryKey: ["issue", selected] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
 
   const [filter, setFilter] = useState<FilterStatus>("open");
   const [selected, setSelected] = useState<string | null>(null);
