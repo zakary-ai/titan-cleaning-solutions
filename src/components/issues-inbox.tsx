@@ -1,6 +1,6 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listIssues, getIssueThread, replyToIssue, setIssueStatus, markIssueRead, markAllIssuesRead } from "@/lib/issues.functions";
+import { listIssues, getIssueThread, replyToIssue, setIssueStatus, markIssueRead, markAllIssuesRead, deleteIssue, deleteMessage } from "@/lib/issues.functions";
 import { signMediaUrl } from "@/lib/uploads.functions";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Paperclip, Loader2, ArrowLeft, X, Film, CheckCheck } from "lucide-react";
+import { DeleteMenu } from "@/components/delete-menu";
 
 type FilterStatus = "open" | "resolved" | "all";
 type IssueStatus = "open" | "resolved";
