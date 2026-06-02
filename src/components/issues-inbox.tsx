@@ -142,15 +142,28 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
               const sp = i.special_project_id ? (data as any).specialProjects?.[i.special_project_id] : null;
               const subtitle = sp ? `Special: ${sp.caption}` : (a?.area_name ?? "—");
               return (
-                <button key={i.id} onClick={() => setSelected(i.id)}
-                  className={`w-full rounded-lg border p-3 text-left transition ${selected === i.id ? "border-gold bg-card" : "border-border bg-card/50 hover:bg-card"}`}>
-                  <div className="flex items-center justify-between">
+                <div
+                  key={i.id}
+                  onClick={() => setSelected(i.id)}
+                  className={`w-full cursor-pointer rounded-lg border p-3 text-left transition ${selected === i.id ? "border-gold bg-card" : "border-border bg-card/50 hover:bg-card"}`}
+                >
+                  <div className="flex items-center justify-between gap-2">
                     <span className="text-sm font-semibold truncate">{i.title}</span>
-                    <span className="text-[10px] uppercase text-gold">{i.status === "resolved" ? "resolved" : "open"}</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] uppercase text-gold">{i.status === "resolved" ? "resolved" : "open"}</span>
+                      {canChangeStatus && (
+                        <DeleteMenu
+                          title="Delete this comment?"
+                          description="This permanently removes the comment thread and all replies. This cannot be undone."
+                          pending={delIssueMut.isPending}
+                          onConfirm={() => delIssueMut.mutate(i.id)}
+                        />
+                      )}
+                    </div>
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">{p?.name} · {subtitle}</div>
                   <div className="text-[10px] text-muted-foreground">{format(new Date(i.created_at), "MMM d, p")}</div>
-                </button>
+                </div>
               );
             })}
             {(data?.issues ?? []).length === 0 && <p className="text-sm text-muted-foreground">No comments.</p>}
