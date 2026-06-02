@@ -156,9 +156,19 @@ function AreaCard({ area, upload, property_id }: any) {
         )}
       </div>
       <div className="p-4">
-        <div className="flex items-center justify-between">
-          <h3 className="font-display text-base">{area.area_name}</h3>
-          {upload?.status === "uploaded" && <CheckCircle2 className="h-4 w-4 text-[oklch(0.7_0.15_145)]" />}
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="font-display text-base truncate">{area.area_name}</h3>
+          <div className="flex items-center gap-1">
+            {upload?.status === "uploaded" && <CheckCircle2 className="h-4 w-4 text-[oklch(0.7_0.15_145)]" />}
+            {role === "admin" && upload?.id && (
+              <DeleteMenu
+                title={`Delete ${area.area_name} upload?`}
+                description="This permanently removes this upload (photo/video and notes). This cannot be undone."
+                pending={delMut.isPending}
+                onConfirm={() => delMut.mutate()}
+              />
+            )}
+          </div>
         </div>
         {upload?.uploaded_at && (
           <div className="mt-1 text-[10px] text-muted-foreground">{format(new Date(upload.uploaded_at), "PPp")}</div>
