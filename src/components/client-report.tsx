@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getPropertyReport, signMediaUrl } from "@/lib/uploads.functions";
+import { getPropertyReport, signMediaUrl, deleteUpload } from "@/lib/uploads.functions";
 import { createIssue } from "@/lib/issues.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,8 @@ import { MessagesSquare, MessageSquarePlus, CheckCircle2, AlertCircle, Search, X
 import { useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/use-auth";
+import { DeleteMenu } from "@/components/delete-menu";
 
 export function ClientReport({ property_id, service_date }: { property_id: string; service_date?: string }) {
   const getReport = useServerFn(getPropertyReport);
