@@ -265,9 +265,12 @@ function SpecialProjectCard({
             </div>
           </div>
           {(mode === "supervisor" || mode === "admin") && (
-            <Button size="icon" variant="ghost" onClick={() => delMut.mutate()} aria-label="Delete">
-              <Trash2 className="h-4 w-4 text-destructive" />
-            </Button>
+            <DeleteMenu
+              title={`Delete "${sp.caption}"?`}
+              description="This permanently removes this special project (media and caption). This cannot be undone."
+              pending={delMut.isPending}
+              onConfirm={() => delMut.mutate()}
+            />
           )}
         </div>
 
