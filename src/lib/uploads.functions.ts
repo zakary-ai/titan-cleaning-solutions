@@ -80,6 +80,18 @@ export const updateUploadNotes = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const deleteUpload = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: roles } = await context.supabase
+      .from("user_roles").select("role").eq("user_id", context.userId).eq("role", "admin").maybeSingle();
+    if (!roles) throw new Error("Forbidden: admin only");
+    const { error } = await context.supabase.from("cleaning_uploads").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 // Submit nightly report — mark missing required areas
 export const submitNightlyReport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

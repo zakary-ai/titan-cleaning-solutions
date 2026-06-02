@@ -1,6 +1,6 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listIssues, getIssueThread, replyToIssue, setIssueStatus, markIssueRead, markAllIssuesRead } from "@/lib/issues.functions";
+import { listIssues, getIssueThread, replyToIssue, setIssueStatus, markIssueRead, markAllIssuesRead, deleteIssue, deleteMessage } from "@/lib/issues.functions";
 import { signMediaUrl } from "@/lib/uploads.functions";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Paperclip, Loader2, ArrowLeft, X, Film, CheckCheck } from "lucide-react";
+import { DeleteMenu } from "@/components/delete-menu";
 
 type FilterStatus = "open" | "resolved" | "all";
 type IssueStatus = "open" | "resolved";
@@ -21,7 +22,28 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
   const setStatus = useServerFn(setIssueStatus);
   const markRead = useServerFn(markIssueRead);
   const markAllRead = useServerFn(markAllIssuesRead);
+  const delIssue = useServerFn(deleteIssue);
+  const delMsg = useServerFn(deleteMessage);
   const qc = useQueryClient();
+
+  const delIssueMut = useMutation({
+    mutationFn: (id: string) => delIssue({ data: { id } }),
+    onSuccess: (_d, id) => {
+      toast.success("Comment deleted");
+      if (id === selected) setSelected(null);
+      qc.invalidateQueries({ queryKey: ["issues"] });
+      qc.invalidateQueries({ queryKey: ["unread-issues"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+  const delMsgMut = useMutation({
+    mutationFn: (id: string) => delMsg({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Message deleted");
+      qc.invalidateQueries({ queryKey: ["issue", selected] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
 
   const [filter, setFilter] = useState<FilterStatus>("open");
   const [selected, setSelected] = useState<string | null>(null);
@@ -120,15 +142,28 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
               const sp = i.special_project_id ? (data as any).specialProjects?.[i.special_project_id] : null;
               const subtitle = sp ? `Special: ${sp.caption}` : (a?.area_name ?? "—");
               return (
-                <button key={i.id} onClick={() => setSelected(i.id)}
-                  className={`w-full rounded-lg border p-3 text-left transition ${selected === i.id ? "border-gold bg-card" : "border-border bg-card/50 hover:bg-card"}`}>
-                  <div className="flex items-center justify-between">
+                <div
+                  key={i.id}
+                  onClick={() => setSelected(i.id)}
+                  className={`w-full cursor-pointer rounded-lg border p-3 text-left transition ${selected === i.id ? "border-gold bg-card" : "border-border bg-card/50 hover:bg-card"}`}
+                >
+                  <div className="flex items-center justify-between gap-2">
                     <span className="text-sm font-semibold truncate">{i.title}</span>
-                    <span className="text-[10px] uppercase text-gold">{i.status === "resolved" ? "resolved" : "open"}</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] uppercase text-gold">{i.status === "resolved" ? "resolved" : "open"}</span>
+                      {canChangeStatus && (
+                        <DeleteMenu
+                          title="Delete this comment?"
+                          description="This permanently removes the comment thread and all replies. This cannot be undone."
+                          pending={delIssueMut.isPending}
+                          onConfirm={() => delIssueMut.mutate(i.id)}
+                        />
+                      )}
+                    </div>
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">{p?.name} · {subtitle}</div>
                   <div className="text-[10px] text-muted-foreground">{format(new Date(i.created_at), "MMM d, p")}</div>
-                </button>
+                </div>
               );
             })}
             {(data?.issues ?? []).length === 0 && <p className="text-sm text-muted-foreground">No comments.</p>}
@@ -204,7 +239,17 @@ export function IssuesInbox({ canChangeStatus = false }: { canChangeStatus?: boo
                   const sender = m.sender_id ? thread.profiles[m.sender_id] : null;
                   return (
                     <div key={m.id} className="rounded-md bg-secondary p-3">
-                      <div className="text-xs text-gold">{sender?.full_name || sender?.email || "User"}</div>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="text-xs text-gold">{sender?.full_name || sender?.email || "User"}</div>
+                        {canChangeStatus && (
+                          <DeleteMenu
+                            title="Delete this message?"
+                            description="This permanently removes this reply from the thread. This cannot be undone."
+                            pending={delMsgMut.isPending}
+                            onConfirm={() => delMsgMut.mutate(m.id)}
+                          />
+                        )}
+                      </div>
                       {m.body && <div className="mt-1 whitespace-pre-wrap text-sm">{m.body}</div>}
                       {m.attachment_url && <MessageAttachment path={m.attachment_url} />}
                       <div className="mt-1 text-[10px] text-muted-foreground">{format(new Date(m.created_at), "PPp")}</div>

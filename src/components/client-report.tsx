@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getPropertyReport, signMediaUrl } from "@/lib/uploads.functions";
+import { getPropertyReport, signMediaUrl, deleteUpload } from "@/lib/uploads.functions";
 import { createIssue } from "@/lib/issues.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,8 @@ import { MessagesSquare, MessageSquarePlus, CheckCircle2, AlertCircle, Search, X
 import { useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/use-auth";
+import { DeleteMenu } from "@/components/delete-menu";
 
 export function ClientReport({ property_id, service_date }: { property_id: string; service_date?: string }) {
   const getReport = useServerFn(getPropertyReport);
@@ -88,6 +90,8 @@ export function ClientReport({ property_id, service_date }: { property_id: strin
 function AreaCard({ area, upload, property_id }: any) {
   const sign = useServerFn(signMediaUrl);
   const create = useServerFn(createIssue);
+  const delUpload = useServerFn(deleteUpload);
+  const { role } = useAuth();
   const qc = useQueryClient();
 
   // Sign the media URL via React Query so the URL stays stable across refetches
@@ -121,6 +125,16 @@ function AreaCard({ area, upload, property_id }: any) {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const delMut = useMutation({
+    mutationFn: () => delUpload({ data: { id: upload!.id } }),
+    onSuccess: () => {
+      toast.success("Upload deleted");
+      qc.invalidateQueries({ queryKey: ["client-report"] });
+      qc.invalidateQueries({ queryKey: ["service-dates"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   return (
     <div className="overflow-hidden rounded-xl bg-card gold-border">
       <div className="aspect-video bg-secondary">
@@ -142,9 +156,19 @@ function AreaCard({ area, upload, property_id }: any) {
         )}
       </div>
       <div className="p-4">
-        <div className="flex items-center justify-between">
-          <h3 className="font-display text-base">{area.area_name}</h3>
-          {upload?.status === "uploaded" && <CheckCircle2 className="h-4 w-4 text-[oklch(0.7_0.15_145)]" />}
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="font-display text-base truncate">{area.area_name}</h3>
+          <div className="flex items-center gap-1">
+            {upload?.status === "uploaded" && <CheckCircle2 className="h-4 w-4 text-[oklch(0.7_0.15_145)]" />}
+            {role === "admin" && upload?.id && (
+              <DeleteMenu
+                title={`Delete ${area.area_name} upload?`}
+                description="This permanently removes this upload (photo/video and notes). This cannot be undone."
+                pending={delMut.isPending}
+                onConfirm={() => delMut.mutate()}
+              />
+            )}
+          </div>
         </div>
         {upload?.uploaded_at && (
           <div className="mt-1 text-[10px] text-muted-foreground">{format(new Date(upload.uploaded_at), "PPp")}</div>
