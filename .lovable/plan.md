@@ -1,69 +1,36 @@
-## Plan: App Store Download Emails + First-Login Password Reset
+## 1. Edit sections from the property card
 
-### Summary
-Replace the web-based invite flow with an App Store download flow. When an admin creates a supervisor or client account, the user receives an email prompting them to download the Titan Solutions iOS app, log in with a temporary password (Titan!2026), and set their own password on first login.
+Add an **"Edit sections"** button to each property card on `/admin/properties` that opens a dialog letting the admin add, rename, toggle required, and remove areas — without leaving the list.
 
-### Technical Details
+- New button on `PropertyCard` in `src/routes/_authenticated/admin/properties.tsx` (alongside the existing Add/Assign buttons).
+- New `EditSectionsDialog` component that:
+  - Fetches `getProperty({ id })` to load current areas
+  - Inline-edit each area name (save on blur / Enter)
+  - Toggle "required" switch
+  - Delete with confirm
+  - "Add section" input at the bottom
+  - Uses existing `upsertArea` / `deleteArea` server fns — no backend changes needed
+- Invalidate `["property", id]` and `["properties"]` on changes.
 
-#### 1. Fix existing build errors
-The email scaffolding created `renderAsync` imports, but `@react-email/components` v1.0.12 exports `render` instead. Fix in 4 files:
-- `src/routes/lovable/email/auth/webhook.ts`
-- `src/routes/lovable/email/auth/preview.ts`
-- `src/routes/lovable/email/transactional/send.ts`
-- `src/routes/lovable/email/transactional/preview.ts`
+## 2. Night-shift service-date rollover (noon cutoff)
 
-#### 2. Add `password_reset_required` to `profiles` table
-Create a migration to add `password_reset_required boolean NOT NULL DEFAULT false` to the `profiles` table.
+Right now `service_date` is set to `new Date().toISOString().slice(0,10)` (UTC) on the supervisor page. We'll change it so uploads done **before 12:00 PM (property timezone)** count toward the **previous calendar day**, keeping an 11pm→6am shift on a single report.
 
-#### 3. Change admin invite flow (`src/lib/admin-invite.server.ts`)
-Replace `inviteUserByEmail` with `createUser`:
-- Create the user with email, password `"Titan!2026"`, and `email_confirm: true`
-- Set `password_reset_required = true` in the profile
-- Render the welcome email template and enqueue it directly via `supabaseAdmin.rpc('enqueue_email', ...)` into the `transactional_emails` queue
-- Remove the old `redirect_to` invite link logic
+- New helper `getServiceDateForNow(tz)` → returns yesterday's date if local time is before 12:00, otherwise today's date.
+- Use it in:
+  - `src/routes/_authenticated/supervisor/property.$id.tsx` — replace the `today` constant. The page needs the property's timezone, so we'll either fetch the property first or accept the default `America/New_York` and refine once `getProperty` data arrives.
+  - `src/lib/uploads.functions.ts` — replace `nowInTz(tz).date` usages that act as "today's service date" (in `getDailyChecklist` default and `recordUpload` fallback) with the rolled-back date.
+  - `src/lib/special-projects.functions.ts` — apply the same rollback to `project_date` default so the photo album bucket matches.
+- The daily-report release time (8am EST default on `properties.daily_report_time`) keeps working unchanged — it already operates on calendar `service_date`, which now naturally lines up with "the night that just ended."
 
-#### 4. Create welcome transactional email template (`src/lib/email-templates/welcome-app-download.tsx`)
-Branded Noir & Gold email that includes:
-- "Welcome to Titan Solutions" heading
-- Instructions to download the app from the App Store (link: https://apps.apple.com/us/app/titan-solutions/id6772334128)
-- Temporary password: `Titan!2026`
-- Note that they'll be prompted to set their own password on first login
-- Register in `registry.ts`
+### Worked example (America/New_York)
+- Supervisor uploads at 2:00 AM Tuesday → service_date = **Monday** ✅
+- Supervisor uploads at 6:30 AM Tuesday → service_date = **Monday** ✅
+- Supervisor uploads at 11:45 AM Tuesday → service_date = **Monday** ✅
+- Supervisor uploads at 12:30 PM Tuesday → service_date = **Tuesday**
+- Supervisor uploads at 11:30 PM Tuesday (start of next shift) → service_date = **Tuesday** ✅
 
-#### 5. Update auth context (`src/hooks/use-auth.tsx`)
-- Load `password_reset_required` from the profile
-- Expose it in the auth context
-
-#### 6. First-login password reset flow
-- In the authenticated layout/route tree, detect when `password_reset_required` is true
-- Show a modal/screen that forces the user to set a new password before they can use the app
-- On successful password update, set `password_reset_required = false` in the profile and refresh the session
-
-#### 7. Create unsubscribe page (`src/routes/unsubscribe.tsx`)
-Required by the transactional email scaffolding. Reads token from URL, validates, shows branded confirm button.
-
-#### 8. Fix Vite config for server env vars
-Add `loadEnv` call with empty prefix so `SUPABASE_SERVICE_ROLE_KEY` and `LOVABLE_API_KEY` are available in server routes.
-
-#### 9. Fix `src/start.ts` middleware bypass
-Add guard at top of `errorMiddleware` to skip processing for `/lovable/` and `/email/unsubscribe` routes.
-
-### Files to modify/create
-- `src/routes/lovable/email/auth/webhook.ts`
-- `src/routes/lovable/email/auth/preview.ts`
-- `src/routes/lovable/email/transactional/send.ts`
-- `src/routes/lovable/email/transactional/preview.ts`
-- `src/lib/admin-invite.server.ts`
-- `src/lib/email-templates/welcome-app-download.tsx`
-- `src/lib/email-templates/registry.ts`
-- `src/hooks/use-auth.tsx`
-- `src/routes/_authenticated.tsx` or layout component (for first-login check)
-- `src/routes/unsubscribe.tsx`
-- `vite.config.ts`
-- `src/start.ts`
-- New migration for `profiles.password_reset_required`
-
-### Out of scope
-- No changes to the client portal video behavior (already addressed in previous turns)
-- No changes to the admin users UI (form stays the same, only the backend action changes)
-- Marketing/bulk emails remain unsupported
+## Out of scope
+- No DB schema changes.
+- No changes to client/admin history calendars (they already read whatever `service_date` is stored, so they update automatically).
+- No per-property cutoff setting (using a fixed noon as you chose).
