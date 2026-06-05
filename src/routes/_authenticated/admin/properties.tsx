@@ -257,6 +257,17 @@ function PropertyCard({ property: p }: { property: any }) {
         />
       </div>
 
+      <EditSectionsDialog
+        propertyId={p.id}
+        propertyName={p.name}
+        trigger={
+          <Button size="sm" variant="outline" className="mt-3 w-full">
+            <ListChecks className="mr-2 h-3.5 w-3.5" /> Edit sections
+          </Button>
+        }
+      />
+
+
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Button size="sm" variant="outline" className="mt-3 w-full text-destructive hover:bg-destructive/10 hover:text-destructive">
