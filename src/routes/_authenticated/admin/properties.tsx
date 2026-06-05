@@ -589,8 +589,8 @@ function AreaRow({
   area: any;
   propertyId: string;
   onChanged: () => void;
-  upsert: ReturnType<typeof useServerFn<typeof upsertArea>>;
-  remove: ReturnType<typeof useServerFn<typeof deleteArea>>;
+  upsert: (args: { data: any }) => Promise<any>;
+  remove: (args: { data: any }) => Promise<any>;
 }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(area.area_name);
