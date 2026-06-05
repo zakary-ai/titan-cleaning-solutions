@@ -8,6 +8,9 @@ import {
   deleteProperty,
   assignUser,
   unassignUserFromProperty,
+  getProperty,
+  upsertArea,
+  deleteArea,
 } from "@/lib/properties.functions";
 import { inviteClientToProperty, listAssignableUsers } from "@/lib/invite.functions";
 import { Button } from "@/components/ui/button";
