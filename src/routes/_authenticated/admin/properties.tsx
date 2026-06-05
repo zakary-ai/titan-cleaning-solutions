@@ -8,6 +8,9 @@ import {
   deleteProperty,
   assignUser,
   unassignUserFromProperty,
+  getProperty,
+  upsertArea,
+  deleteArea,
 } from "@/lib/properties.functions";
 import { inviteClientToProperty, listAssignableUsers } from "@/lib/invite.functions";
 import { Button } from "@/components/ui/button";
@@ -33,7 +36,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Plus, MapPin, UserPlus, Users, Shield, ShieldPlus, Clock, Zap, Trash2 } from "lucide-react";
+import { Plus, MapPin, UserPlus, Users, Shield, ShieldPlus, Clock, Zap, Trash2, ListChecks, Check, Pencil, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -253,6 +256,17 @@ function PropertyCard({ property: p }: { property: any }) {
           }
         />
       </div>
+
+      <EditSectionsDialog
+        propertyId={p.id}
+        propertyName={p.name}
+        trigger={
+          <Button size="sm" variant="outline" className="mt-3 w-full">
+            <ListChecks className="mr-2 h-3.5 w-3.5" /> Edit sections
+          </Button>
+        }
+      />
+
 
       <AlertDialog>
         <AlertDialogTrigger asChild>
@@ -476,3 +490,222 @@ function AssignDialog({
     </Dialog>
   );
 }
+
+function EditSectionsDialog({
+  propertyId,
+  propertyName,
+  trigger,
+}: {
+  propertyId: string;
+  propertyName: string;
+  trigger: React.ReactNode;
+}) {
+  const get = useServerFn(getProperty);
+  const upsert = useServerFn(upsertArea);
+  const remove = useServerFn(deleteArea);
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [newArea, setNewArea] = useState("");
+
+  const { data, refetch } = useQuery({
+    queryKey: ["property", propertyId],
+    queryFn: () => get({ data: { id: propertyId } }),
+    enabled: open,
+  });
+
+  const areas = (data?.areas ?? []) as any[];
+
+  const addMut = useMutation({
+    mutationFn: () =>
+      upsert({
+        data: {
+          property_id: propertyId,
+          area_name: newArea.trim(),
+          required_upload: true,
+          display_order: areas.length + 1,
+          active: true,
+        },
+      }),
+    onSuccess: () => {
+      setNewArea("");
+      refetch();
+      qc.invalidateQueries({ queryKey: ["properties"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit sections — {propertyName}</DialogTitle>
+        </DialogHeader>
+        <div className="max-h-96 space-y-2 overflow-y-auto">
+          {areas.length === 0 && (
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              No sections yet. Add one below.
+            </p>
+          )}
+          {areas.map((a) => (
+            <AreaRow
+              key={a.id}
+              area={a}
+              propertyId={propertyId}
+              onChanged={() => refetch()}
+              upsert={upsert}
+              remove={remove}
+            />
+          ))}
+        </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (newArea.trim()) addMut.mutate();
+          }}
+          className="mt-3 flex gap-2"
+        >
+          <Input
+            placeholder="New section name (e.g. Lobby)"
+            value={newArea}
+            onChange={(e) => setNewArea(e.target.value)}
+          />
+          <Button type="submit" disabled={!newArea.trim() || addMut.isPending}>
+            <Plus className="h-4 w-4" />
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AreaRow({
+  area,
+  propertyId,
+  onChanged,
+  upsert,
+  remove,
+}: {
+  area: any;
+  propertyId: string;
+  onChanged: () => void;
+  upsert: (args: { data: any }) => Promise<any>;
+  remove: (args: { data: any }) => Promise<any>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(area.area_name);
+
+  const saveName = async () => {
+    const trimmed = name.trim();
+    if (!trimmed || trimmed === area.area_name) {
+      setEditing(false);
+      setName(area.area_name);
+      return;
+    }
+    try {
+      await upsert({
+        data: {
+          id: area.id,
+          property_id: propertyId,
+          area_name: trimmed,
+          required_upload: area.required_upload,
+          display_order: area.display_order,
+          active: area.active,
+        },
+      });
+      setEditing(false);
+      onChanged();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  const toggleRequired = async (v: boolean) => {
+    try {
+      await upsert({
+        data: {
+          id: area.id,
+          property_id: propertyId,
+          area_name: area.area_name,
+          required_upload: v,
+          display_order: area.display_order,
+          active: area.active,
+        },
+      });
+      onChanged();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  const del = async () => {
+    try {
+      await remove({ data: { id: area.id } });
+      onChanged();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-between gap-2 rounded-md bg-secondary px-3 py-2">
+      <div className="min-w-0 flex-1">
+        {editing ? (
+          <div className="flex items-center gap-1">
+            <Input
+              autoFocus
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  saveName();
+                }
+                if (e.key === "Escape") {
+                  setEditing(false);
+                  setName(area.area_name);
+                }
+              }}
+              className="h-8"
+            />
+            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={saveName}>
+              <Check className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={() => {
+                setEditing(false);
+                setName(area.area_name);
+              }}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="group flex w-full items-center gap-2 text-left"
+          >
+            <span className="truncate text-sm">{area.area_name}</span>
+            <Pencil className="h-3 w-3 text-muted-foreground opacity-0 transition group-hover:opacity-100" />
+          </button>
+        )}
+        <div className="mt-0.5 text-[10px] text-muted-foreground">
+          {area.required_upload ? "Required" : "Optional"}
+        </div>
+      </div>
+      {!editing && (
+        <div className="flex items-center gap-2">
+          <Switch checked={area.required_upload} onCheckedChange={toggleRequired} />
+          <Button size="icon" variant="ghost" onClick={del}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+

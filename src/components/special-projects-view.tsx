@@ -22,6 +22,7 @@ import {
 } from "@/lib/special-projects.functions";
 import { signMediaUrl } from "@/lib/uploads.functions";
 import { createIssue } from "@/lib/issues.functions";
+import { getServiceDateForNow } from "@/lib/service-date";
 import { cn } from "@/lib/utils";
 
 type Mode = "supervisor" | "client" | "admin";
@@ -137,7 +138,7 @@ export function SpecialProjectsManager({ property_id }: { property_id: string })
         .from("cleaning-media").upload(path, file, { upsert: true });
       if (error) throw error;
       const file_type = file.type.startsWith("video") ? "video" : "image";
-      await createFn({ data: { property_id, caption: caption.trim(), file_url: path, file_type } });
+      await createFn({ data: { property_id, caption: caption.trim(), file_url: path, file_type, project_date: getServiceDateForNow() } });
       toast.success("Special project posted");
       setCaption("");
       setOpen(false);

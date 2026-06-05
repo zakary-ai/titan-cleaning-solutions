@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getNightlyChecklist, recordUpload, submitNightlyReport, signMediaUrl, updateUploadNotes } from "@/lib/uploads.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { getServiceDateForNow } from "@/lib/service-date";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,7 +18,8 @@ export const Route = createFileRoute("/_authenticated/supervisor/property/$id")(
 
 function NightlyChecklist() {
   const { id } = Route.useParams();
-  const today = new Date().toISOString().slice(0, 10);
+  // Night-shift rollover: uploads before noon (property TZ) count toward the previous day.
+  const today = getServiceDateForNow();
   const get = useServerFn(getNightlyChecklist);
   const record = useServerFn(recordUpload);
   const submit = useServerFn(submitNightlyReport);
