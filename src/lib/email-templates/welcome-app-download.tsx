@@ -186,3 +186,23 @@ const credValueMono = {
 }
 const footer = { fontSize: '12px', color: '#888', margin: '30px 0 6px', fontFamily: 'Arial, sans-serif' }
 const footerLink = { fontSize: '11px', color: '#aaa', margin: '0', fontFamily: 'Arial, sans-serif', wordBreak: 'break-all' as const }
+const videoSection = { margin: '28px 0', textAlign: 'center' as const }
+const videoLabel = {
+  fontSize: '11px',
+  letterSpacing: '0.18em',
+  textTransform: 'uppercase' as const,
+  color: '#8a7a3f',
+  margin: '0 0 10px',
+  fontFamily: 'Arial, sans-serif',
+}
+const videoLink = { display: 'inline-block', textDecoration: 'none' }
+const videoThumb = {
+  width: '100%',
+  maxWidth: '520px',
+  height: 'auto',
+  borderRadius: '6px',
+  border: '1px solid #e6d9a8',
+  display: 'block',
+}
+const videoCaption = { fontSize: '13px', margin: '10px 0 0', fontFamily: 'Arial, sans-serif' }
+const videoCaptionLink = { color: '#c9a84c', textDecoration: 'none', fontWeight: 'bold' as const }
