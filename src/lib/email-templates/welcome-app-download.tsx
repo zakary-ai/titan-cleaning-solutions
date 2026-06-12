@@ -6,7 +6,6 @@ import {
   Head,
   Heading,
   Html,
-  Img,
   Link,
   Preview,
   Section,
@@ -17,8 +16,6 @@ import type { TemplateEntry } from './registry'
 const APP_STORE_URL = 'https://apps.apple.com/us/app/titan-solutions/id6772334128'
 const TEMP_PASSWORD = 'Titan!2026'
 const WALKTHROUGH_VIDEO_URL = 'https://www.loom.com/share/d55a5c1f37a04968b1ac5da1aa35d459'
-const WALKTHROUGH_THUMBNAIL_URL =
-  'https://cdn.loom.com/sessions/thumbnails/d55a5c1f37a04968b1ac5da1aa35d459-with-play.gif'
 
 interface WelcomeAppDownloadProps {
   fullName?: string
@@ -78,15 +75,7 @@ const WelcomeAppDownloadEmail = ({
           </Text>
 
           <Section style={videoSection}>
-            <Text style={videoLabel}>Quick walkthrough</Text>
-            <Link href={WALKTHROUGH_VIDEO_URL} style={videoLink}>
-              <Img
-                src={WALKTHROUGH_THUMBNAIL_URL}
-                alt="Watch the Titan Solutions walkthrough video"
-                width="520"
-                style={videoThumb}
-              />
-            </Link>
+            <Text style={videoLabel}>How to use the app</Text>
             <Text style={videoCaption}>
               <Link href={WALKTHROUGH_VIDEO_URL} style={videoCaptionLink}>
                 Watch the walkthrough on Loom →
@@ -194,15 +183,6 @@ const videoLabel = {
   color: '#8a7a3f',
   margin: '0 0 10px',
   fontFamily: 'Arial, sans-serif',
-}
-const videoLink = { display: 'inline-block', textDecoration: 'none' }
-const videoThumb = {
-  width: '100%',
-  maxWidth: '520px',
-  height: 'auto',
-  borderRadius: '6px',
-  border: '1px solid #e6d9a8',
-  display: 'block',
 }
 const videoCaption = { fontSize: '13px', margin: '10px 0 0', fontFamily: 'Arial, sans-serif' }
 const videoCaptionLink = { color: '#c9a84c', textDecoration: 'none', fontWeight: 'bold' as const }
