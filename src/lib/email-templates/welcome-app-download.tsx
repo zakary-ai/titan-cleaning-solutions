@@ -78,15 +78,7 @@ const WelcomeAppDownloadEmail = ({
           </Text>
 
           <Section style={videoSection}>
-            <Text style={videoLabel}>Quick walkthrough</Text>
-            <Link href={WALKTHROUGH_VIDEO_URL} style={videoLink}>
-              <Img
-                src={WALKTHROUGH_THUMBNAIL_URL}
-                alt="Watch the Titan Solutions walkthrough video"
-                width="520"
-                style={videoThumb}
-              />
-            </Link>
+            <Text style={videoLabel}>How to use the app</Text>
             <Text style={videoCaption}>
               <Link href={WALKTHROUGH_VIDEO_URL} style={videoCaptionLink}>
                 Watch the walkthrough on Loom →
