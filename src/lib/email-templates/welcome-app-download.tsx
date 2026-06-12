@@ -6,6 +6,8 @@ import {
   Head,
   Heading,
   Html,
+  Img,
+  Link,
   Preview,
   Section,
   Text,
@@ -14,6 +16,9 @@ import type { TemplateEntry } from './registry'
 
 const APP_STORE_URL = 'https://apps.apple.com/us/app/titan-solutions/id6772334128'
 const TEMP_PASSWORD = 'Titan!2026'
+const WALKTHROUGH_VIDEO_URL = 'https://www.loom.com/share/d55a5c1f37a04968b1ac5da1aa35d459'
+const WALKTHROUGH_THUMBNAIL_URL =
+  'https://cdn.loom.com/sessions/thumbnails/d55a5c1f37a04968b1ac5da1aa35d459-with-play.gif'
 
 interface WelcomeAppDownloadProps {
   fullName?: string
@@ -71,6 +76,23 @@ const WelcomeAppDownloadEmail = ({
             password. Choose something memorable — you'll use it every time
             after that.
           </Text>
+
+          <Section style={videoSection}>
+            <Text style={videoLabel}>Quick walkthrough</Text>
+            <Link href={WALKTHROUGH_VIDEO_URL} style={videoLink}>
+              <Img
+                src={WALKTHROUGH_THUMBNAIL_URL}
+                alt="Watch the Titan Solutions walkthrough video"
+                width="520"
+                style={videoThumb}
+              />
+            </Link>
+            <Text style={videoCaption}>
+              <Link href={WALKTHROUGH_VIDEO_URL} style={videoCaptionLink}>
+                Watch the walkthrough on Loom →
+              </Link>
+            </Text>
+          </Section>
 
           <Text style={footer}>
             If you weren't expecting this invitation, you can safely ignore this email.
@@ -164,3 +186,23 @@ const credValueMono = {
 }
 const footer = { fontSize: '12px', color: '#888', margin: '30px 0 6px', fontFamily: 'Arial, sans-serif' }
 const footerLink = { fontSize: '11px', color: '#aaa', margin: '0', fontFamily: 'Arial, sans-serif', wordBreak: 'break-all' as const }
+const videoSection = { margin: '28px 0', textAlign: 'center' as const }
+const videoLabel = {
+  fontSize: '11px',
+  letterSpacing: '0.18em',
+  textTransform: 'uppercase' as const,
+  color: '#8a7a3f',
+  margin: '0 0 10px',
+  fontFamily: 'Arial, sans-serif',
+}
+const videoLink = { display: 'inline-block', textDecoration: 'none' }
+const videoThumb = {
+  width: '100%',
+  maxWidth: '520px',
+  height: 'auto',
+  borderRadius: '6px',
+  border: '1px solid #e6d9a8',
+  display: 'block',
+}
+const videoCaption = { fontSize: '13px', margin: '10px 0 0', fontFamily: 'Arial, sans-serif' }
+const videoCaptionLink = { color: '#c9a84c', textDecoration: 'none', fontWeight: 'bold' as const }
