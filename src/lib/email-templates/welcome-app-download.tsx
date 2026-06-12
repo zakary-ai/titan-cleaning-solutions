@@ -184,14 +184,5 @@ const videoLabel = {
   margin: '0 0 10px',
   fontFamily: 'Arial, sans-serif',
 }
-const videoLink = { display: 'inline-block', textDecoration: 'none' }
-const videoThumb = {
-  width: '100%',
-  maxWidth: '520px',
-  height: 'auto',
-  borderRadius: '6px',
-  border: '1px solid #e6d9a8',
-  display: 'block',
-}
 const videoCaption = { fontSize: '13px', margin: '10px 0 0', fontFamily: 'Arial, sans-serif' }
 const videoCaptionLink = { color: '#c9a84c', textDecoration: 'none', fontWeight: 'bold' as const }
