@@ -6,6 +6,8 @@ import {
   Head,
   Heading,
   Html,
+  Img,
+  Link,
   Preview,
   Section,
   Text,
@@ -14,6 +16,9 @@ import type { TemplateEntry } from './registry'
 
 const APP_STORE_URL = 'https://apps.apple.com/us/app/titan-solutions/id6772334128'
 const TEMP_PASSWORD = 'Titan!2026'
+const WALKTHROUGH_VIDEO_URL = 'https://www.loom.com/share/d55a5c1f37a04968b1ac5da1aa35d459'
+const WALKTHROUGH_THUMBNAIL_URL =
+  'https://cdn.loom.com/sessions/thumbnails/d55a5c1f37a04968b1ac5da1aa35d459-with-play.gif'
 
 interface WelcomeAppDownloadProps {
   fullName?: string
