@@ -70,9 +70,16 @@ export function SetPasswordPrompt() {
     }
   };
 
+  const handleDismiss = () => {
+    const until = Date.now() + 24 * 60 * 60 * 1000;
+    localStorage.setItem(DISMISS_KEY, String(until));
+    setDismissedUntil(until);
+    setOpen(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={() => { /* required */ }}>
-      <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
+    <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) handleDismiss(); }}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Set your password</DialogTitle>
           <DialogDescription>
