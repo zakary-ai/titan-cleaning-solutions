@@ -7,19 +7,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
+const DISMISS_KEY = "setPasswordDismissedUntil";
+
 export function SetPasswordPrompt() {
   const { user, session, loading } = useAuth();
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [dismissedUntil, setDismissedUntil] = useState<number | null>(() => {
+    const raw = typeof window !== "undefined" ? window.localStorage.getItem(DISMISS_KEY) : null;
+    return raw ? parseInt(raw, 10) : null;
+  });
 
   useEffect(() => {
     if (loading) return;
     if (!user || !session) { setOpen(false); return; }
     const passwordSet = user.user_metadata?.password_set === true;
-    setOpen(!passwordSet);
-  }, [loading, user?.id, user?.user_metadata?.password_set, session?.access_token]);
+    const isDismissed = dismissedUntil !== null && Date.now() < dismissedUntil;
+    setOpen(!passwordSet && !isDismissed);
+  }, [loading, user?.id, user?.user_metadata?.password_set, session?.access_token, dismissedUntil]);
 
   if (!user || !session) return null;
 
@@ -63,9 +70,16 @@ export function SetPasswordPrompt() {
     }
   };
 
+  const handleDismiss = () => {
+    const until = Date.now() + 24 * 60 * 60 * 1000;
+    localStorage.setItem(DISMISS_KEY, String(until));
+    setDismissedUntil(until);
+    setOpen(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={() => { /* required */ }}>
-      <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
+    <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) handleDismiss(); }}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Set your password</DialogTitle>
           <DialogDescription>
