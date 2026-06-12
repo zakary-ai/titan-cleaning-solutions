@@ -24,7 +24,7 @@ export function SetPasswordPrompt() {
     if (loading) return;
     if (!user || !session) { setOpen(false); return; }
     const passwordSet = user.user_metadata?.password_set === true;
-    const isDismissed = dismissedUntil !== null && Date.now() < dismissededUntil;
+    const isDismissed = dismissedUntil !== null && Date.now() < dismissedUntil;
     setOpen(!passwordSet && !isDismissed);
   }, [loading, user?.id, user?.user_metadata?.password_set, session?.access_token, dismissedUntil]);
 
