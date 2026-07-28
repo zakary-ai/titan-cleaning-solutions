@@ -18,6 +18,9 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/supervisor/property/$id")({
   component: NightlyChecklist,
+  validateSearch: (s: Record<string, unknown>) => ({
+    date: typeof s.date === "string" ? s.date : undefined,
+  }),
 });
 
 function parseYmd(s: string): Date {
