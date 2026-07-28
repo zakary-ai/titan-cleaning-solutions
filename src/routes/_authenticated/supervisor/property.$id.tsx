@@ -36,6 +36,7 @@ function formatYmd(d: Date): string {
 
 function NightlyChecklist() {
   const { id } = Route.useParams();
+  const search = Route.useSearch();
   const get = useServerFn(getNightlyChecklist);
   const record = useServerFn(recordUpload);
   const submit = useServerFn(submitNightlyReport);
@@ -44,8 +45,8 @@ function NightlyChecklist() {
   const navigate = useNavigate();
 
   // Night-shift rollover: uploads before noon (property TZ) count toward the previous day.
-  const [serviceDate, setServiceDate] = useState<string>(() => getServiceDateForNow());
-  const [userPicked, setUserPicked] = useState(false);
+  const [serviceDate, setServiceDate] = useState<string>(() => search.date ?? getServiceDateForNow());
+  const [userPicked, setUserPicked] = useState<boolean>(!!search.date);
 
   const { data } = useQuery({
     queryKey: ["checklist", id, serviceDate],
