@@ -1,10 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { listMyProperties, listServiceDates } from "@/lib/uploads.functions";
 import { ClientReport, ClientPropertyHeader } from "@/components/client-report";
 import { Calendar } from "@/components/ui/calendar";
-import { ArrowLeft, MapPin } from "lucide-react";
+import { ArrowLeft, MapPin, Upload } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -55,6 +56,7 @@ function SupervisorHistory() {
 
 function PropertyHistoryView({ property, onBack }: { property: any; onBack: () => void }) {
   const datesFn = useServerFn(listServiceDates);
+  const navigate = useNavigate();
   const { data: dates = [] } = useQuery({
     queryKey: ["service-dates", property.id],
     queryFn: () => datesFn({ data: { property_id: property.id } }),
@@ -70,6 +72,9 @@ function PropertyHistoryView({ property, onBack }: { property: any; onBack: () =
   const selectedStr = selected ? format(selected, "yyyy-MM-dd") : undefined;
   const hasReport = selectedStr ? dateSet.has(selectedStr) : false;
 
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+
   return (
     <div className="mt-6 space-y-6">
       <button
@@ -84,7 +89,7 @@ function PropertyHistoryView({ property, onBack }: { property: any; onBack: () =
       <div className="rounded-2xl bg-card p-4 gold-border">
         <h2 className="font-display text-lg">Pick a day</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Days with a report are highlighted in gold.
+          Days with a report are highlighted in gold. Tap any day to view or upload for that date.
         </p>
         <div className="mt-3 flex justify-center">
           <Calendar
@@ -95,18 +100,35 @@ function PropertyHistoryView({ property, onBack }: { property: any; onBack: () =
             modifiersClassNames={{
               hasReport: "bg-gold/15 text-gold font-semibold rounded-md",
             }}
-            disabled={(date) => !dateSet.has(format(date, "yyyy-MM-dd"))}
+            disabled={(date) => date > today}
             className={cn("p-3 pointer-events-auto")}
           />
         </div>
+        {selectedStr && (
+          <div className="mt-4 flex justify-center">
+            <Button
+              size="sm"
+              onClick={() =>
+                navigate({
+                  to: "/supervisor/property/$id",
+                  params: { id: property.id },
+                  search: { date: selectedStr },
+                })
+              }
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              Upload for {format(selected!, "PPP")}
+            </Button>
+          </div>
+        )}
       </div>
 
       {selectedStr && hasReport ? (
         <ClientReport property_id={property.id} service_date={selectedStr} />
       ) : selectedStr ? (
-        <p className="text-sm text-muted-foreground">No report on {format(selected!, "PPP")}.</p>
+        <p className="text-sm text-muted-foreground">No report on {format(selected!, "PPP")} yet. Tap “Upload” above to add one.</p>
       ) : (
-        <p className="text-sm text-muted-foreground">Select a highlighted day to view that night&apos;s report.</p>
+        <p className="text-sm text-muted-foreground">Select a day to view or upload.</p>
       )}
     </div>
   );
