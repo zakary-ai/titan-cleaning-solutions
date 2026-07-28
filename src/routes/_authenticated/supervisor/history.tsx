@@ -1,10 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { listMyProperties, listServiceDates } from "@/lib/uploads.functions";
 import { ClientReport, ClientPropertyHeader } from "@/components/client-report";
 import { Calendar } from "@/components/ui/calendar";
-import { ArrowLeft, MapPin } from "lucide-react";
+import { ArrowLeft, MapPin, Upload } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
