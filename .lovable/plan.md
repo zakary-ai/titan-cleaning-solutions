@@ -1,36 +1,26 @@
-## 1. Edit sections from the property card
+## Goal
+Let supervisors upload to previous service dates by adding a date picker on the supervisor property page.
 
-Add an **"Edit sections"** button to each property card on `/admin/properties` that opens a dialog letting the admin add, rename, toggle required, and remove areas — without leaving the list.
+## Changes
 
-- New button on `PropertyCard` in `src/routes/_authenticated/admin/properties.tsx` (alongside the existing Add/Assign buttons).
-- New `EditSectionsDialog` component that:
-  - Fetches `getProperty({ id })` to load current areas
-  - Inline-edit each area name (save on blur / Enter)
-  - Toggle "required" switch
-  - Delete with confirm
-  - "Add section" input at the bottom
-  - Uses existing `upsertArea` / `deleteArea` server fns — no backend changes needed
-- Invalidate `["property", id]` and `["properties"]` on changes.
+### 1. `src/routes/_authenticated/supervisor/property.$id.tsx`
+- Replace the hardcoded `const today = getServiceDateForNow()` with state: `const [serviceDate, setServiceDate] = useState(getServiceDateForNow())`.
+- Add a date picker (shadcn Popover + Calendar, per project convention) next to the "Service date:" label in the header. Default = rollover date; allow selection of any date up to today.
+- Pass `serviceDate` (instead of `today`) into:
+  - the `["checklist", id, serviceDate]` query
+  - `submitNightlyReport` mutation
+  - each `AreaCard`'s `service_date` prop
+  - the localStorage submitted key
+- Invalidate the correct query key on change.
 
-## 2. Night-shift service-date rollover (noon cutoff)
-
-Right now `service_date` is set to `new Date().toISOString().slice(0,10)` (UTC) on the supervisor page. We'll change it so uploads done **before 12:00 PM (property timezone)** count toward the **previous calendar day**, keeping an 11pm→6am shift on a single report.
-
-- New helper `getServiceDateForNow(tz)` → returns yesterday's date if local time is before 12:00, otherwise today's date.
-- Use it in:
-  - `src/routes/_authenticated/supervisor/property.$id.tsx` — replace the `today` constant. The page needs the property's timezone, so we'll either fetch the property first or accept the default `America/New_York` and refine once `getProperty` data arrives.
-  - `src/lib/uploads.functions.ts` — replace `nowInTz(tz).date` usages that act as "today's service date" (in `getDailyChecklist` default and `recordUpload` fallback) with the rolled-back date.
-  - `src/lib/special-projects.functions.ts` — apply the same rollback to `project_date` default so the photo album bucket matches.
-- The daily-report release time (8am EST default on `properties.daily_report_time`) keeps working unchanged — it already operates on calendar `service_date`, which now naturally lines up with "the night that just ended."
-
-### Worked example (America/New_York)
-- Supervisor uploads at 2:00 AM Tuesday → service_date = **Monday** ✅
-- Supervisor uploads at 6:30 AM Tuesday → service_date = **Monday** ✅
-- Supervisor uploads at 11:45 AM Tuesday → service_date = **Monday** ✅
-- Supervisor uploads at 12:30 PM Tuesday → service_date = **Tuesday**
-- Supervisor uploads at 11:30 PM Tuesday (start of next shift) → service_date = **Tuesday** ✅
+### 2. `src/lib/service-date.ts` (small fix)
+- The rollover currently hardcodes `America/New_York` and ignores the property's `daily_report_timezone`. Extend `getServiceDateForNow` usage in the supervisor page to accept the property's timezone once the checklist data loads (recompute default once `data.property.daily_report_timezone` is known, only if the user hasn't manually picked a date yet).
 
 ## Out of scope
-- No DB schema changes.
-- No changes to client/admin history calendars (they already read whatever `service_date` is stored, so they update automatically).
-- No per-property cutoff setting (using a fixed noon as you chose).
+- No backend/server function changes — `recordUpload`, `getNightlyChecklist`, and `submitNightlyReport` already accept an arbitrary `service_date`; storage paths already namespace by date.
+- Special Projects tab (already date-independent).
+- Admin/client views.
+
+## Technical notes
+- Storage was ruled out as the cause — `cleaning-media` uploads are keyed by `${property_id}/${service_date}/...` and the server functions accept any valid date string. The gap was purely UI.
+- The date picker will follow the existing shadcn pattern (Popover + Calendar with `pointer-events-auto`).

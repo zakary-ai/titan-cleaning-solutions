@@ -7,19 +7,32 @@ import { getServiceDateForNow } from "@/lib/service-date";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { SpecialProjectsManager } from "@/components/special-projects-view";
-import { ArrowLeft, Camera, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
-import { useState, useRef } from "react";
+import { ArrowLeft, Camera, CheckCircle2, AlertCircle, Loader2, CalendarIcon } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { format } from "date-fns";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/supervisor/property/$id")({
   component: NightlyChecklist,
 });
 
+function parseYmd(s: string): Date {
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+function formatYmd(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 function NightlyChecklist() {
   const { id } = Route.useParams();
-  // Night-shift rollover: uploads before noon (property TZ) count toward the previous day.
-  const today = getServiceDateForNow();
   const get = useServerFn(getNightlyChecklist);
   const record = useServerFn(recordUpload);
   const submit = useServerFn(submitNightlyReport);
@@ -27,30 +40,70 @@ function NightlyChecklist() {
   const qc = useQueryClient();
   const navigate = useNavigate();
 
+  // Night-shift rollover: uploads before noon (property TZ) count toward the previous day.
+  const [serviceDate, setServiceDate] = useState<string>(() => getServiceDateForNow());
+  const [userPicked, setUserPicked] = useState(false);
+
   const { data } = useQuery({
-    queryKey: ["checklist", id, today],
-    queryFn: () => get({ data: { property_id: id, service_date: today } }),
+    queryKey: ["checklist", id, serviceDate],
+    queryFn: () => get({ data: { property_id: id, service_date: serviceDate } }),
   });
 
+  // Once the property's timezone loads, recompute default rollover date (unless user picked).
+  useEffect(() => {
+    const tz = data?.property?.daily_report_timezone;
+    if (tz && !userPicked) {
+      const computed = getServiceDateForNow(tz);
+      if (computed !== serviceDate) setServiceDate(computed);
+    }
+  }, [data?.property?.daily_report_timezone, userPicked, serviceDate]);
+
   const submitReport = useMutation({
-    mutationFn: () => submit({ data: { property_id: id, service_date: today } }),
+    mutationFn: () => submit({ data: { property_id: id, service_date: serviceDate } }),
     onSuccess: () => {
       toast.success("Nightly report submitted");
-      try { localStorage.setItem(`submitted:${id}:${today}`, "1"); } catch {}
-      qc.invalidateQueries({ queryKey: ["checklist", id, today] });
+      try { localStorage.setItem(`submitted:${id}:${serviceDate}`, "1"); } catch {}
+      qc.invalidateQueries({ queryKey: ["checklist", id, serviceDate] });
       navigate({ to: "/supervisor" });
     },
     onError: (e: any) => toast.error(e.message),
   });
+
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
 
   return (
     <div>
       <Link to="/supervisor" className="inline-flex items-center text-sm text-muted-foreground hover:text-gold">
         <ArrowLeft className="mr-1 h-3 w-3" /> Properties
       </Link>
-      <div className="mt-2">
-        <h1 className="font-display text-3xl">{data?.property?.name}</h1>
-        <p className="text-sm text-muted-foreground">Service date: {today}</p>
+      <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-3xl">{data?.property?.name}</h1>
+          <p className="text-sm text-muted-foreground">Service date: {serviceDate}</p>
+        </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className={cn("justify-start text-left font-normal")}>
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {format(parseYmd(serviceDate), "PPP")}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              mode="single"
+              selected={parseYmd(serviceDate)}
+              onSelect={(d) => {
+                if (!d) return;
+                setUserPicked(true);
+                setServiceDate(formatYmd(d));
+              }}
+              disabled={(d) => d > today}
+              initialFocus
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       <Tabs defaultValue="nightly" className="mt-6">
@@ -69,9 +122,9 @@ function NightlyChecklist() {
             {(data?.areas ?? []).map((area: any) => {
               const upload = (data?.uploads ?? []).find((u: any) => u.area_id === area.id);
               return (
-                <AreaCard key={area.id} area={area} upload={upload} property_id={id} service_date={today}
+                <AreaCard key={`${area.id}-${serviceDate}`} area={area} upload={upload} property_id={id} service_date={serviceDate}
                   record={record} updateNotes={updateNotes}
-                  onChange={() => qc.invalidateQueries({ queryKey: ["checklist", id, today] })} />
+                  onChange={() => qc.invalidateQueries({ queryKey: ["checklist", id, serviceDate] })} />
               );
             })}
           </div>
